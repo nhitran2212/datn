@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Thay Đổi Thông Tin Cá Nhân - LMS</title>
+	<style>
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+		}
+
+		body {
+			background-color: #f5f7fa;
+			min-height: 100vh;
+			margin: 0;
+			padding: 20px;
+		}
+
+		.profile-container {
+			width: 600px;
+			max-width: 95%;
+			margin: 2rem auto;
+			padding: 2.5rem;
+			background-color: white;
+			border-radius: 16px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+			transition: all 0.3s ease;
+		}
+
+		.profile-header {
+			margin-bottom: 2rem;
+			padding-bottom: 1.5rem;
+			border-bottom: 1px solid #f0f0f0;
+		}
+
+		.profile-header h1 {
+			color: #1a3b5d;
+			font-size: 2.2rem;
+			font-weight: 600;
+			margin-bottom: 0.5rem;
+		}
+
+		.required-note {
+			color: #e74c3c;
+			font-size: 0.9rem;
+			font-weight: 500;
+		}
+
+		.profile-info {
+			width: 100%;
+		}
+
+		.form-row {
+			display: flex;
+			gap: 1.5rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.form-group {
+			flex: 1;
+			position: relative;
+		}
+
+		.form-group label {
+			display: block;
+			font-weight: 500;
+			color: #34495e;
+			margin-bottom: 0.5rem;
+			font-size: 0.95rem;
+		}
+
+		.form-group label .required {
+			color: #e74c3c;
+			margin-left: 2px;
+		}
+
+		.form-group input {
+			width: 100%;
+			padding: 0.9rem;
+			border: 1px solid #e6eaf0;
+			border-radius: 8px;
+			font-size: 1rem;
+			outline: none;
+			transition: all 0.3s ease;
+			background-color: #f8f9fa;
+		}
+
+		.form-group input:focus {
+			border-color: #3498db;
+			box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+			background-color: white;
+		}
+
+		.form-group input::placeholder {
+			color: #b2b9c1;
+		}
+
+		.alert {
+			border: none;
+			border-radius: 8px;
+			padding: 1rem;
+			margin-bottom: 1.5rem;
+			font-size: 0.9rem;
+			font-weight: 500;
+		}
+
+		.alert-danger {
+			background-color: #f8d7da;
+			color: #721c24;
+			border-left: 4px solid #dc3545;
+		}
+
+		.alert-success {
+			background-color: #d4edda;
+			color: #155724;
+			border-left: 4px solid #28a745;
+		}
+
+		.form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 1rem;
+			margin-top: 2rem;
+		}
+
+		.save-btn,
+		.cancel-btn {
+			padding: 0.9rem 2rem;
+			border-radius: 8px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			font-size: 1rem;
+		}
+
+		.save-btn {
+			background-color: #3498db;
+			color: white;
+			border: none;
+		}
+
+		.save-btn:hover {
+			background-color: #2980b9;
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+		}
+
+		.cancel-btn {
+			background-color: transparent;
+			color: #7f8c8d;
+			border: 1px solid #e6eaf0;
+		}
+
+		.cancel-btn:hover {
+			background-color: #f8f9fa;
+			color: #34495e;
+		}
+
+		@media (max-width: 992px) {
+			.profile-container {
+				width: 95%;
+				padding: 2rem;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.form-row {
+				flex-direction: column;
+				gap: 1rem;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.profile-container {
+				padding: 1.5rem;
+			}
+
+			.profile-header h1 {
+				font-size: 1.8rem;
+			}
+
+			.form-actions {
+				flex-direction: column;
+			}
+
+			.save-btn,
+			.cancel-btn {
+				width: 100%;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="profile-container">
+		<div class="profile-header">
+			<h1>Thay đổi thông tin cá nhân</h1>
+			<span class="required-note">(* Thông tin bắt buộc)</span>
+		</div>
+		<div class="profile-info">
+			<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+			<div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+			<form th:action="@{/profile}" th:object="${user}" method="post">
+				<div class="form-row">
+					<div class="form-group">
+						<label for="ho">Họ <span class="required">*</span></label>
+						<input type="text" id="ho" name="ho" th:value="${ho}" placeholder="Nhập họ" required>
+					</div>
+					<div class="form-group">
+						<label for="ten">Tên <span class="required">*</span></label>
+						<input type="text" id="ten" name="ten" th:value="${ten}" placeholder="Nhập tên" required>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="soDienThoai">Số điện thoại <span class="required">*</span></label>
+						<input type="tel" id="soDienThoai" th:field="*{soDienThoai}" placeholder="Nhập số điện thoại"
+							required pattern="[0-9]{10}">
+					</div>
+					<div class="form-group">
+						<label for="email">Email <span class="required">*</span></label>
+						<input type="email" id="email" th:field="*{email}" placeholder="Nhập email" required readonly>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label for="ngaySinh">Ngày sinh <span class="required">*</span></label>
+						<input type="date" id="ngaySinh" th:field="*{ngaySinh}" max="2018-12-31" required>
+					</div>
+				</div>
+				<div class="form-actions">
+					<a href="/index" class="cancel-btn">Hủy bỏ</a>
+					<button type="submit" class="save-btn">Lưu thông tin</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script>
+		document.querySelector('form').addEventListener('submit', function (e) {
+			const phone = document.querySelector('#soDienThoai').value;
+			const ngaySinh = document.querySelector('#ngaySinh').value;
+			const maxDate = new Date('2018-12-31');
+			const selectedDate = new Date(ngaySinh);
+			let errorMessage = '';
+			if (!/^[0-9]{10}$/.test(phone)) {
+				errorMessage = 'Số điện thoại phải có đúng 10 chữ số.';
+			} else if (selectedDate > maxDate) {
+				errorMessage = 'Ngày sinh phải từ 2018 trở về trước.';
+			}
+			if (errorMessage) {
+				e.preventDefault();
+				const alert = document.createElement('div');
+				alert.className = 'alert alert-danger';
+				alert.innerText = errorMessage;
+				document.querySelector('.profile-info').prepend(alert);
+				setTimeout(() => alert.remove(), 3000);
+			}
+		});
+		document.querySelector('.cancel-btn').addEventListener('click', function (e) {
+			if (!confirm('Bạn có chắc muốn hủy bỏ các thay đổi?')) {
+				e.preventDefault();
+			}
+		});
+	</script>
+</body>
+
+</html>

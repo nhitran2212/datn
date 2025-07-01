@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Giỏ hàng của bạn</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        /* Body Styling */
+        body {
+            color: #1a1a1a;
+            line-height: 1.5;
+            background-color: #f5f6f8;
+        }
+
+        /* Cart Container */
+        .cart-container {
+            max-width: 1280px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Cart Header */
+        .cart-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .cart-header h1 {
+            color: #1e3a8a;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .cart-header h3 {
+            color: #4b5563;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        /* Select All Checkbox */
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #1e3a8a;
+        }
+
+        .select-all input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #1e3a8a;
+        }
+
+        /* Cart Items */
+        .cart-items {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .cart-item {
+            display: grid;
+            grid-template-columns: 40px 150px 1fr auto;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .cart-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #1e3a8a;
+        }
+
+        .cart-item-image {
+            width: 150px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .cart-item-image img:hover {
+            transform: scale(1.05);
+        }
+
+        .cart-item-details h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-item-details p {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .cart-item-price {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+
+        .cart-item-price p {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1e3a8a;
+        }
+
+        .cart-item-price button {
+            background: none;
+            border: none;
+            color: #dc2626;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cart-item-price button:hover {
+            color: #b91c1c;
+            transform: translateX(2px);
+        }
+
+        /* Cart Total */
+        .cart-total {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .cart-total .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .cart-total p {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #1e3a8a;
+            margin: 0;
+        }
+
+        .cart-total button {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .cart-total button:hover {
+            background-color: #1e40af;
+            transform: translateY(-1px);
+        }
+
+        /* Suggested Courses */
+        .suggested-courses {
+            margin-top: 4rem;
+        }
+
+        .suggested-courses h2 {
+            color: #1e3a8a;
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .suggested-courses h2::after {
+            content: '';
+            position: absolute;
+            height: 4px;
+            width: 60px;
+            background-color: #1e3a8a;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .course-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        .course-item {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .course-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+        }
+
+        .course-image {
+            position: relative;
+            height: 160px;
+            overflow: hidden;
+        }
+
+        .course-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .course-image img:hover {
+            transform: scale(1.05);
+        }
+
+        .course-favorite {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .course-favorite:hover {
+            color: #dc2626;
+            background-color: white;
+        }
+
+        .course-details {
+            padding: 1.25rem;
+        }
+
+        .course-details h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-details p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .course-details a {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .course-details a:hover {
+            background-color: #1e40af;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .course-list {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cart-item {
+                grid-template-columns: 40px 120px 1fr;
+            }
+
+            .cart-item-price {
+                grid-column: span 2;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+            }
+
+            .course-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cart-total .total-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .cart-total button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .course-list {
+                grid-template-columns: 1fr;
+            }
+
+            .cart-item {
+                grid-template-columns: 40px 1fr;
+            }
+
+            .cart-item-image {
+                width: 100%;
+                height: 180px;
+            }
+
+            .cart-item-price {
+                grid-column: span 2;
+            }
+
+            .cart-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .cart-total .total-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .cart-total button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <div class="cart-header">
+            <h1>Giỏ hàng của bạn</h1>
+            <h3 th:text="${cartItems != null} ? ${cartItems.size()} + ' khóa học trong giỏ hàng' : '0 khóa học trong giỏ hàng'">0 khóa học trong giỏ hàng</h3>
+        </div>
+        <div class="cart-items">
+            <div class="select-all">
+                <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                <label for="select-all">Chọn tất cả</label>
+            </div>
+            <div th:each="item, iter : ${cartItems}" class="cart-item">
+                <div class="item-checkbox">
+                    <input type="checkbox" th:id="'checkbox' + ${iter.index}" th:name="'selectedItems'" th:value="${item.course.ten_khoa_hoc}" class="cart-item-checkbox" onchange="updateTotal()">
+                </div>
+                <img class="rounded-2xl" th:src="'/upload/' + ${item.course.anh_dai_dien}" alt="Course thumbnail" width="100" height="100" />
+                <div class="cart-item-details">
+                    <h3 th:text="${item.course.ten_khoa_hoc}">Tên khóa học</h3>
+                    <p th:text="${item.course.mo_ta}">Mô tả khóa học</p>
+                </div>
+                <div class="cart-item-price">
+                    <p th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</p>
+                    <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post">
+                        <button type="submit">🗑️ Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="cart-total">
+            <div class="total-row">
+                <p>Thành tiền: <span id="totalPrice">0 VND</span></p>
+                <form th:action="@{/cart/checkout}" method="post">
+                    <button type="submit">Thanh toán ngay</button>
+                </form>
+            </div>
+        </div>
+        <div class="suggested-courses">
+            <h2>Có thể bạn quan tâm</h2>
+            <div class="course-list">
+                <div th:each="course : ${suggestedCourses}" class="course-item">
+                    <div class="course-favorite">❤</div>
+                    <img class="rounded-2xl" th:src="${course.anh_dai_dien} ? '/upload/' + ${course.anh_dai_dien} : '/upload/default.png'" alt="Course thumbnail" width="100" height="100" />
+                    <div class="course-details">
+                        <h3 th:text="${course.ten_khoa_hoc}">Tên khóa học</h3>
+                        <p th:text="${course.mo_ta}">Mô tả khóa học</p>
+                        <p th:text="${#numbers.formatDecimal(course.gia_tien, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</p>
+                        <form th:action="@{/cart/course/buy/{id}(id=${course.ID_khoa_hoc})}" method="post">
+                            <button type="submit" class="btn btn-primary">Thêm giỏ hàng</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const checkboxes = document.querySelectorAll('.cart-item-checkbox');
+            const totalPriceElement = document.getElementById('totalPrice');
+            const cartItems = document.querySelectorAll('.cart-item');
+
+            function toggleSelectAll() {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+                updateTotal();
+            }
+
+            function updateTotal() {
+                let total = 0;
+
+                checkboxes.forEach((checkbox, index) => {
+                    if (checkbox.checked) {
+                        const item = cartItems[index];
+                        const priceText = item.querySelector('.cart-item-price p').textContent;
+                        const price = parseInt(priceText.replace(/[^0-9]/g, '')) || 0;
+                        total += price;
+                    }
+                });
+
+                totalPriceElement.textContent = total.toLocaleString() + ' VND';
+            }
+
+            // Gọi lần đầu khi tải trang
+            updateTotal();
+
+            // Lắng nghe sự kiện thay đổi checkbox
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Kiểm tra nếu tất cả checkbox được chọn
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    updateTotal();
+                });
+            });
+
+            // Lắng nghe sự kiện thay đổi của checkbox "Chọn tất cả"
+            selectAllCheckbox.addEventListener('change', toggleSelectAll);
+        });
+    </script>
+</body>
+</html>

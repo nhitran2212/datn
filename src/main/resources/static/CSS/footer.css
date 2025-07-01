@@ -1,0 +1,45 @@
+/* Reset CSS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #002855;
+      color: white;
+      padding: 2rem 5% 1rem;
+      margin-top: 3rem;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 2rem;
+    }
+
+    .footer-logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .footer-logo span {
+      color: #ff6b00;
+    }
+
+    .footer-description {
+      max-width: 300px;
+      opacity: 0.8;
+      margin-bottom: 1rem;
+    }
+
+    .copyright {
+      text-align: center;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      opacity: 0.7;
+      font-size: 0.9rem;
+    }

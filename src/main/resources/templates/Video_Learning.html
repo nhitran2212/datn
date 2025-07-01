@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${course.ten_khoa_hoc} + ' - Video Learning'">
+      Học tập Video
+    </title>
+    <!-- Font Awesome for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Reset CSS */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        color: #333;
+        line-height: 1.6;
+        background-color: white !important;
+        overflow: hidden;
+      }
+
+      /* Header Navigation */
+      .header-nav {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        padding: 1rem 0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+      }
+
+      .nav-container {
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .back-btn {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+      }
+
+      .back-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .course-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .progress-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      /* Main Layout - Full Screen */
+      .main-container {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 0;
+        height: 100vh;
+        background: #000;
+      }
+
+      .main-container.ai-expanded {
+        grid-template-columns: 300px 1fr 350px;
+      }
+
+      /* Video Player Area */
+      .video-section {
+        background: #000;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding-top: 80px; /* Account for fixed header */
+      }
+
+      .video-player {
+        flex: 1;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .video-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .custom-video-player {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        position: relative;
+      }
+
+      #youtubePlayer {
+        width: 100%;
+        height: 100%;
+      }
+
+      .video-element {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      /* Custom Video Controls */
+      .video-controls-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+        padding: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .video-container:hover .video-controls-overlay {
+        opacity: 1;
+      }
+
+      .progress-bar-container {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        position: relative;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: #ff6b00;
+        width: 0%;
+        transition: width 0.1s ease;
+      }
+
+      .progress-handle {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background: #ff6b00;
+        border-radius: 50%;
+        cursor: pointer;
+        display: block;
+        left: 0%;
+        transition: left 0.1s ease;
+        z-index: 10;
+      }
+
+      .progress-bar-container:hover .progress-handle {
+        display: block;
+      }
+
+      .control-buttons {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .control-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+      }
+
+      .control-btn:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .control-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .time-display {
+        color: white;
+        font-size: 0.9rem;
+        margin-left: auto;
+      }
+
+      .volume-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .volume-slider {
+        width: 80px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        cursor: pointer;
+      }
+
+      .volume-fill {
+        height: 100%;
+        background: white;
+        border-radius: 2px;
+        width: 100%;
+      }
+
+      .video-info {
+        padding: 1.5rem 2rem;
+        background: white;
+        border-top: 1px solid #333;
+      }
+
+      .video-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: black;
+        margin-bottom: 1rem;
+      }
+
+      .video-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .control-btn-nav {
+        padding: 0.5rem 1rem;
+        border: 2px solid #002855;
+        background: transparent;
+        color: #002855;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .control-btn-nav:hover {
+        background: #002855;
+        color: white;
+      }
+
+      .control-btn-nav:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Course Content Sidebar */
+      .course-content {
+        background: white;
+        border-right: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 100vh;
+        padding-top: 70px; /* Account for fixed header */
+      }
+
+      .content-header {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        padding: 2em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .content-header h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .content-body {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .lesson-list {
+        list-style: none;
+      }
+
+      .lesson-item {
+        padding: 0.75rem 1.5rem;
+        border-bottom: 1px solid #333;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .lesson-item:hover {
+        background-color: rgba(123, 122, 122, 0.2);
+      }
+
+      .lesson-item.active {
+        background-color: rgba(123, 122, 122, 0.2);
+        border-left: 4px solid #002855;
+      }
+
+      .lesson-item a {
+        text-decoration: none;
+        color: #ccc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .lesson-item .lesson-title {
+        color: black;
+        font-weight: 500;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .lesson-item .lesson-status {
+        color: #002855;
+        font-size: 0.9rem;
+      }
+
+      /* AI Chat section */
+      .ai-chat-section {
+        background: #1a1a1a;
+        border-left: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        height: 100vh;
+        padding-top: 80px; /* Account for fixed header */
+      }
+
+      .ai-chat-header {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .ai-chat-header h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .collapse-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+      }
+
+      .ai-chat-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .chat-message {
+        display: flex;
+        gap: 1rem;
+        max-width: 80%;
+      }
+
+      .chat-message.user {
+        align-self: flex-end;
+      }
+
+      .chat-avatar {
+        width: 36px;
+        height: 36px;
+        background: #f2f2f2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+      }
+
+      .chat-avatar.ai {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+      }
+
+      .chat-avatar.user {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+      }
+
+      .chat-bubble {
+        background: #2a2a2a;
+        color: #ccc;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+      }
+
+      .chat-message.user .chat-bubble {
+        background: #333;
+      }
+
+      .chat-input-container {
+        padding: 1rem;
+        border-top: 1px solid #333;
+      }
+
+      .chat-input-form {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 2px solid #333;
+        background: #2a2a2a;
+        color: #ccc;
+        border-radius: 8px;
+        resize: none;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+
+      .chat-input:focus {
+        outline: none;
+        border-color: #ff6b00;
+      }
+
+      .send-btn {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+      }
+
+      .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+      }
+
+      /* Toggle AI Chat Button */
+      .toggle-ai-chat {
+        position: absolute;
+        right: -18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid #ff6b00;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      /* Message for video completion */
+      .completion-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        display: none;
+        z-index: 1000;
+        text-align: center;
+      }
+
+      /* Media Queries */
+      @media (max-width: 768px) {
+        .main-container,
+        .main-container.ai-expanded {
+          grid-template-columns: 1fr;
+          height: auto;
+          min-height: 100vh;
+        }
+
+        .course-content {
+          order: 2;
+          border-right: none;
+          border-top: 1px solid #333;
+          height: 300px;
+        }
+
+        .video-section {
+          order: 1;
+          height: 400px;
+        }
+
+        .ai-chat-section {
+          order: 3;
+          border-left: none;
+          border-top: 1px solid #333;
+          height: 300px;
+        }
+
+        .toggle-ai-chat {
+          display: none;
+        }
+
+        .content-body {
+          max-height: 200px;
+        }
+
+        .ai-chat-body {
+          max-height: 200px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header Navigation -->
+    <header class="header-nav">
+      <div class="nav-container">
+        <div class="nav-left">
+          <a th:href="@{/index}" class="back-btn">
+            <i class="fas fa-chevron-left"></i>
+            <span>Quay lại</span>
+          </a>
+          <div class="course-title" th:text="${course.ten_khoa_hoc}">
+            Android App Development với Kotlin
+          </div>
+        </div>
+        <div class="nav-right">
+          <div class="progress-info">
+            <!-- Video hiện tại / Tổng số video -->
+            <span
+              th:if="${videos != null && !videos.isEmpty()}"
+              th:text="${'Video ' + (videos.indexOf(currentVideo) + 1) + '/' + videos.size()}"
+              >Video 1/8</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <div
+      id="mainContainer"
+      class="main-container"
+      th:classappend="${isAIChatExpanded ? 'ai-expanded' : ''}"
+    >
+      <!-- Course Content Sidebar -->
+      <aside class="course-content">
+        <div class="content-header">
+          <h3>
+            <i class="fas fa-book-open"></i>
+            <span>Danh sách bài học</span>
+          </h3>
+        </div>
+        <div class="content-body">
+          <ul class="lesson-list">
+            <!-- Danh sách các video -->
+            <li
+              th:each="video : ${videos}"
+              class="lesson-item"
+              th:classappend="${video.ID_video == currentVideo.ID_video ? 'active' : ''}"
+            >
+              <a
+                th:href="@{'/video-learning/' + ${course.ID_khoa_hoc} + '/' + ${video.ID_video}}"
+              >
+                <span class="lesson-title" th:text="${video.ten_video}"
+                  >Bài học</span
+                >
+                <span
+                  class="lesson-status"
+                  th:if="${video.ID_video == currentVideo.ID_video}"
+                >
+                  <i class="fas fa-play-circle"></i>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Video Section -->
+      <main class="video-section">
+        <div class="video-player">
+          <div
+            class="video-container"
+            th:if="${currentVideo != null}"
+            th:attr="data-video-url=${currentVideo.duong_dan_video}"
+          >
+            <div class="custom-video-player">
+              <!-- YouTube IFrame -->
+              <div id="youtubePlayer"></div>
+
+              <!-- Loading Spinner -->
+              <div id="loadingSpinner" class="loading-spinner"></div>
+
+              <!-- Custom Video Controls -->
+              <div class="video-controls-overlay">
+                <div class="progress-bar-container" id="progressContainer">
+                  <div class="progress-bar" id="progressBar"></div>
+                  <div class="progress-handle" id="progressHandle"></div>
+                </div>
+
+                <div class="control-buttons">
+                  <button class="control-btn" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                  </button>
+
+                  <button class="control-btn" id="rewindBtn">
+                    <i class="fas fa-backward"></i>
+                  </button>
+
+                  <button class="control-btn" id="forwardBtn" disabled>
+                    <i class="fas fa-forward"></i>
+                  </button>
+
+                  <div class="volume-control">
+                    <button class="control-btn" id="muteBtn">
+                      <i class="fas fa-volume-up"></i>
+                    </button>
+                    <div class="volume-slider" id="volumeSlider">
+                      <div class="volume-fill" id="volumeFill"></div>
+                    </div>
+                  </div>
+
+                  <div class="time-display">
+                    <span id="currentTime">0:00</span> /
+                    <span id="duration">0:00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Completion Message -->
+              <div id="completionMessage" class="completion-message">
+                Video đã xem hết! Chuyển sang bài kiểm tra...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-info">
+          <h2
+            class="video-title"
+            th:text="${currentVideo != null ? currentVideo.ten_video : 'Không có video'}"
+          >
+            Bài học không có sẵn
+          </h2>
+          <div class="video-controls">
+            <div class="control-left">
+              <a
+                th:if="${videos != null && !videos.isEmpty() && videos.indexOf(currentVideo) > 0}"
+                th:href="@{'/video-learning/' + ${course.ID_khoa_hoc} + '/' + ${videos[videos.indexOf(currentVideo) - 1].ID_video}}"
+                class="control-btn-nav"
+              >
+                <i class="fas fa-chevron-left"></i>
+                <span>Bài trước</span>
+              </a>
+            </div>
+            <div class="control-right">
+              <a
+                th:if="${videos != null && !videos.isEmpty() && videos.indexOf(currentVideo) < videos.size() - 1}"
+                th:href="@{'/video-learning/' + ${course.ID_khoa_hoc} + '/' + ${videos[videos.indexOf(currentVideo) + 1].ID_video}}"
+                class="control-btn-nav"
+              >
+                <span>Bài tiếp theo</span>
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toggle AI Chat Button -->
+        <button id="toggleAiChat" class="toggle-ai-chat">
+          <i id="toggleIcon" class="fas fa-comment-alt"></i>
+        </button>
+      </main>
+
+      <!-- AI Chat Section (only visible when expanded) -->
+      <div
+        id="aiChatSection"
+        class="ai-chat-section"
+        th:style="${isAIChatExpanded ? '' : 'display: none;'}"
+      >
+        <div class="ai-chat-header">
+          <h3>
+            <i class="fas fa-robot"></i>
+            <span>Hỏi AI trợ giảng</span>
+          </h3>
+          <button id="collapseAiChat" class="collapse-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="ai-chat-body">
+          <!-- Sample AI messages (will be replaced with dynamic content later) -->
+          <div class="chat-message">
+            <div class="chat-avatar ai">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div class="chat-bubble">
+              Xin chào! Tôi là AI trợ giảng. Bạn có câu hỏi gì về bài học này
+              không?
+            </div>
+          </div>
+          <!-- Sample user message -->
+          <div class="chat-message user">
+            <div class="chat-bubble">
+              Tính năng này sẽ được phát triển trong các phiên bản tiếp theo.
+            </div>
+            <div class="chat-avatar user">
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-container">
+          <form class="chat-input-form">
+            <textarea
+              class="chat-input"
+              placeholder="Nhập câu hỏi của bạn..."
+              rows="2"
+            ></textarea>
+            <button type="button" class="send-btn">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      const courseId = /*[[${course.ID_khoa_hoc}]]*/ 0;
+
+      // YouTube IFrame API
+      let tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      let firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+      // Video Player Variables
+      let player;
+      let playPauseBtn = document.getElementById("playPauseBtn");
+      let rewindBtn = document.getElementById("rewindBtn");
+      let forwardBtn = document.getElementById("forwardBtn");
+      let muteBtn = document.getElementById("muteBtn");
+      let progressBar = document.getElementById("progressBar");
+      let progressContainer = document.getElementById("progressContainer");
+      let progressHandle = document.getElementById("progressHandle");
+      let volumeSlider = document.getElementById("volumeSlider");
+      let volumeFill = document.getElementById("volumeFill");
+      let currentTimeDisplay = document.getElementById("currentTime");
+      let durationDisplay = document.getElementById("duration");
+      let loadingSpinner = document.getElementById("loadingSpinner");
+      let completionMessage = document.getElementById("completionMessage");
+
+      // Video Progress Tracking
+      let watchedSegments = [];
+      let maxWatchedTime = 0;
+      let currentVideoId = "";
+      let progressInterval;
+
+      // Get YouTube Video ID from URL
+      function getYouTubeVideoId(url) {
+        const regExp =
+          /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return match && match[2].length === 11 ? match[2] : null;
+      }
+
+      // Load volume from localStorage
+      function loadVolumeFromStorage() {
+        const savedVolume = localStorage.getItem("videoVolume");
+        if (savedVolume !== null) {
+          const volume = parseFloat(savedVolume);
+          if (player) {
+            player.setVolume(volume * 100);
+          }
+          volumeFill.style.width = volume * 100 + "%";
+          return volume;
+        }
+        return 1; // Default volume
+      }
+
+      // Save volume to localStorage
+      function saveVolumeToStorage(volume) {
+        localStorage.setItem("videoVolume", volume.toString());
+      }
+
+      // YouTube IFrame API Ready
+      function onYouTubeIframeAPIReady() {
+        // Get video ID from current video
+        const videoUrl = document
+          .querySelector("[data-video-url]")
+          ?.getAttribute("data-video-url");
+        if (videoUrl) {
+          currentVideoId = getYouTubeVideoId(videoUrl);
+          initYouTubePlayer();
+        }
+      }
+
+      // Initialize YouTube Player
+      function initYouTubePlayer() {
+        if (!currentVideoId) return;
+
+        player = new YT.Player("youtubePlayer", {
+          height: "100%",
+          width: "100%",
+          videoId: currentVideoId,
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            rel: 0,
+            showinfo: 0,
+            modestbranding: 1,
+            iv_load_policy: 3,
+            cc_load_policy: 0,
+          },
+          events: {
+            onReady: onPlayerReady,
+            onStateChange: onPlayerStateChange,
+            onError: onPlayerError,
+          },
+        });
+      }
+
+      // Player Ready Event
+      function onPlayerReady(event) {
+        // Hide loading spinner
+        loadingSpinner.style.display = "none";
+
+        // Set duration
+        durationDisplay.textContent = formatTime(player.getDuration());
+
+        // Load saved volume
+        const savedVolume = loadVolumeFromStorage();
+        player.setVolume(savedVolume * 100);
+        volumeFill.style.width = savedVolume * 100 + "%";
+
+        // Initialize controls
+        initControls();
+
+        // Start progress tracking
+        startProgressTracking();
+      }
+
+      // Player State Change Event
+      function onPlayerStateChange(event) {
+        switch (event.data) {
+          case YT.PlayerState.PLAYING:
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            loadingSpinner.style.display = "none";
+            break;
+          case YT.PlayerState.PAUSED:
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            loadingSpinner.style.display = "none";
+            break;
+          case YT.PlayerState.ENDED:
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            loadingSpinner.style.display = "none";
+            completionMessage.style.display = "block";
+            setTimeout(() => {
+              window.location.href = "/quiz/" + courseId;
+            }, 2000); // Chuyển sang quiz sau 2 giây
+            break;
+          case YT.PlayerState.BUFFERING:
+            loadingSpinner.style.display = "block";
+            break;
+          case YT.PlayerState.CUED:
+            loadingSpinner.style.display = "none";
+            break;
+          case YT.PlayerState.UNSTARTED:
+            loadingSpinner.style.display = "none";
+            break;
+        }
+      }
+
+      // Player Error Event
+      function onPlayerError(event) {
+        console.error("YouTube Player Error:", event.data);
+        loadingSpinner.style.display = "none";
+      }
+
+      // Start progress tracking
+      function startProgressTracking() {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+        progressInterval = setInterval(updateProgress, 1000);
+      }
+
+      // Stop progress tracking
+      function stopProgressTracking() {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+      }
+
+      // Initialize Controls
+      function initControls() {
+        // Play/Pause functionality
+        playPauseBtn.addEventListener("click", togglePlayPause);
+
+        // Rewind functionality (only to watched segments)
+        rewindBtn.addEventListener("click", rewindVideo);
+
+        // Forward button is always disabled (no skipping ahead)
+        forwardBtn.disabled = true;
+
+        // Mute functionality
+        muteBtn.addEventListener("click", toggleMute);
+
+        // Progress bar click
+        progressContainer.addEventListener("click", seekToPosition);
+
+        // Volume control
+        volumeSlider.addEventListener("click", adjustVolume);
+
+        // Keyboard shortcuts
+        document.addEventListener("keydown", handleKeyboard);
+      }
+
+      // Toggle play/pause
+      function togglePlayPause() {
+        if (player && player.getPlayerState) {
+          const state = player.getPlayerState();
+          if (state === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          } else {
+            player.playVideo();
+          }
+        }
+      }
+
+      // Rewind video (only to watched segments)
+      function rewindVideo() {
+        if (maxWatchedTime > 0 && player) {
+          // Find the closest watched segment
+          let targetTime = Math.max(0, maxWatchedTime - 10); // Go back 10 seconds from max watched
+          player.seekTo(targetTime, true);
+        }
+      }
+
+      // Toggle mute
+      function toggleMute() {
+        if (player) {
+          if (player.isMuted()) {
+            player.unMute();
+            muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+          } else {
+            player.mute();
+            muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+          }
+        }
+      }
+
+      // Update progress bar
+      function updateProgress() {
+        if (player && player.getCurrentTime && player.getDuration) {
+          const currentTime = player.getCurrentTime();
+          const duration = player.getDuration();
+
+          if (duration > 0 && !isNaN(currentTime) && !isNaN(duration)) {
+            let progress = (currentTime / duration) * 100;
+            progressBar.style.width = progress + "%";
+
+            // Update progress handle position
+            progressHandle.style.left = progress + "%";
+
+            currentTimeDisplay.textContent = formatTime(currentTime);
+
+            // Update watched segments
+            updateWatchedSegments(currentTime);
+          }
+        }
+      }
+
+      // Update watched segments
+      function updateWatchedSegments(currentTime) {
+        // Update max watched time
+        if (currentTime > maxWatchedTime) {
+          maxWatchedTime = currentTime;
+        }
+
+        // Add to watched segments if not already tracked
+        let segmentFound = watchedSegments.find(
+          (segment) => Math.abs(segment - currentTime) < 1
+        );
+
+        if (!segmentFound) {
+          watchedSegments.push(currentTime);
+        }
+      }
+
+      // Seek to position (only within watched segments)
+      function seekToPosition(e) {
+        if (!player) return;
+
+        let rect = progressContainer.getBoundingClientRect();
+        let clickX = e.clientX - rect.left;
+        let percentage = clickX / rect.width;
+        let seekTime = percentage * player.getDuration();
+
+        // Only allow seeking to watched segments or before max watched time
+        if (seekTime <= maxWatchedTime) {
+          player.seekTo(seekTime, true);
+        }
+      }
+
+      // Adjust volume
+      function adjustVolume(e) {
+        if (!player) return;
+
+        let rect = volumeSlider.getBoundingClientRect();
+        let clickX = e.clientX - rect.left;
+        let percentage = Math.max(0, Math.min(1, clickX / rect.width));
+
+        player.setVolume(percentage * 100);
+        volumeFill.style.width = percentage * 100 + "%";
+
+        // Save volume to localStorage
+        saveVolumeToStorage(percentage);
+      }
+
+      // Format time display
+      function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        let minutes = Math.floor(seconds / 60);
+        seconds = Math.floor(seconds % 60);
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+      }
+
+      // Handle keyboard shortcuts
+      function handleKeyboard(e) {
+        switch (e.code) {
+          case "Space":
+            e.preventDefault();
+            togglePlayPause();
+            break;
+          case "ArrowLeft":
+            e.preventDefault();
+            rewindVideo();
+            break;
+          case "KeyM":
+            e.preventDefault();
+            toggleMute();
+            break;
+        }
+      }
+
+      // Load new video when page changes
+      function loadVideo(videoUrl) {
+        const videoId = getYouTubeVideoId(videoUrl);
+        if (videoId && player && player.loadVideoById) {
+          currentVideoId = videoId;
+          maxWatchedTime = 0;
+          watchedSegments = [];
+          player.loadVideoById(videoId);
+          loadingSpinner.style.display = "block";
+        }
+      }
+
+      // Toggle AI Chat visibility
+      document
+        .getElementById("toggleAiChat")
+        .addEventListener("click", function () {
+          toggleAiChat();
+        });
+
+      document
+        .getElementById("collapseAiChat")
+        .addEventListener("click", function () {
+          toggleAiChat();
+        });
+
+      function toggleAiChat() {
+        const mainContainer = document.getElementById("mainContainer");
+        const aiChatSection = document.getElementById("aiChatSection");
+        const toggleIcon = document.getElementById("toggleIcon");
+
+        if (aiChatSection.style.display === "none") {
+          // Show AI chat
+          aiChatSection.style.display = "flex";
+          mainContainer.classList.add("ai-expanded");
+          toggleIcon.classList.remove("fa-comment-alt");
+          toggleIcon.classList.add("fa-chevron-right");
+        } else {
+          // Hide AI chat
+          aiChatSection.style.display = "none";
+          mainContainer.classList.remove("ai-expanded");
+          toggleIcon.classList.remove("fa-chevron-right");
+          toggleIcon.classList.add("fa-comment-alt");
+        }
+      }
+
+      // Initialize when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        // Video URL is already set as data attribute in HTML
+        const videoUrl = document
+          .querySelector("[data-video-url]")
+          ?.getAttribute("data-video-url");
+        if (videoUrl) {
+          loadVideo(videoUrl);
+        }
+      });
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", function () {
+        stopProgressTracking();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" xmlns:th="http://www.thymeleaf.org" lang="vi"></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử mua khóa học</title>
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    
+<style>
+    /* Reset CSS */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        color: #333;
+        line-height: 1.6;
+        background-color: #f7f9fc;
+    }
+
+    /* Main Content Styles */
+    .page-wrapper {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .purchase-container {
+        width: 100%;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+    }
+
+    .page-header h1 {
+        color: #002855;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .page-header h1 i {
+        margin-right: 1rem;
+        color: #ff6b00;
+    }
+
+    .page-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        font-weight: 300;
+    }
+
+    /* Statistics Cards */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.total-courses {
+        border-left-color: #002855;
+    }
+
+    .stat-card.total-spent {
+        border-left-color: #ff6b00;
+    }
+
+    .stat-card.completed {
+        border-left-color: #28a745;
+    }
+
+    .stat-card.in-progress {
+        border-left-color: #ffc107;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-card.total-courses .stat-icon {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+    }
+
+    .stat-card.total-spent .stat-icon {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+    }
+
+    .stat-card.completed .stat-icon {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+
+    .stat-card.in-progress .stat-icon {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #002855;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Filter and Search Section */
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        padding: 1.5rem 2rem;
+    }
+
+    .filter-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        color: #002855;
+        font-weight: 600;
+    }
+
+    .filter-controls {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .filter-group label i {
+        color: #002855;
+        width: 16px;
+    }
+
+    .form-control, .filter-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+    }
+
+    .form-control:focus, .filter-control:focus {
+        border-color: #002855;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.1);
+    }
+
+    .search-input {
+        position: relative;
+    }
+
+    .search-input i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+        z-index: 1;
+    }
+
+    .search-input input {
+        padding-left: 2.5rem;
+    }
+
+    .filter-btn {
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 40, 85, 0.3);
+    }
+
+    /* Purchase History Table Card */
+    .table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .table-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-header i {
+        font-size: 1.1rem;
+    }
+
+    .table-info {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .purchase-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+    }
+
+    .purchase-table th,
+    .purchase-table td {
+        padding: 1.25rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .purchase-table th {
+        background-color: #f8f9fa;
+        color: #002855;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .purchase-table th i {
+        margin-right: 0.5rem;
+        color: #ff6b00;
+    }
+
+    .purchase-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .purchase-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Course Info Styles - Updated without image */
+    .course-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .course-details h4 {
+        color: #002855;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .course-category {
+        color: #666;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .course-category i {
+        color: #ff6b00;
+    }
+
+    /* Price Styles */
+    .price-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.25rem;
+    }
+
+    .original-price {
+        color: #999;
+        text-decoration: line-through;
+        font-size: 0.9rem;
+    }
+
+    .final-price {
+        color: #002855;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .discount-badge {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 2px solid #28a745;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    }
+
+    .status-in-progress {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        border: 2px solid #ffc107;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+    }
+
+    .status-not-started {
+        background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+        color: #383d41;
+        border: 2px solid #6c757d;
+        box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 120px;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-text {
+        font-size: 0.8rem;
+        color: #666;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        font-weight: 600;
+        gap: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .continue-btn {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+    }
+
+    .continue-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 40, 85, 0.4);
+    }
+
+    .certificate-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .certificate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    .invoice-btn {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+    }
+
+    .invoice-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 107, 0, 0.4);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #002855;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .browse-courses-btn {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .browse-courses-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255, 107, 0, 0.3);
+    }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        padding: 1rem;
+    }
+
+    .pagination-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 2px solid #e1e5e9;
+        background: white;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .pagination-btn:hover {
+        border-color: #002855;
+        color: #002855;
+        transform: translateY(-1px);
+    }
+
+    .pagination-btn.active {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        border-color: #002855;
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-btn.disabled:hover {
+        border-color: #e1e5e9;
+        color: #666;
+        transform: none;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .page-wrapper {
+            padding: 0.5rem;
+        }
+
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filter-controls {
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .purchase-table th,
+        .purchase-table td {
+            padding: 0.8rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-wrapper {
+            padding: 1rem 0.5rem;
+        }
+
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-controls {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .purchase-table th,
+        .purchase-table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .course-info {
+            text-align: left;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .page-subtitle {
+            font-size: 0.9rem;
+        }
+
+        .filter-section {
+            padding: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+        }
+
+        .purchase-table {
+            font-size: 0.85rem;
+        }
+
+        .purchase-table th,
+        .purchase-table td {
+            padding: 0.6rem 0.4rem;
+        }
+
+        .course-details h4 {
+            font-size: 0.9rem;
+        }
+
+        .final-price {
+            font-size: 1rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    /* Animation for new purchases */
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .new-purchase {
+        animation: slideInUp 0.5s ease-out;
+        background-color: rgba(255, 107, 0, 0.05) !important;
+        border-left: 4px solid #ff6b00;
+    }
+
+    /* Loading states */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #002855;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="purchase-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1><i class="fas fa-history"></i> Lịch sử mua khóa học</h1>
+                <p class="page-subtitle">Theo dõi quá trình học tập và thành tích của bạn</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-container">
+                <div class="stat-card total-courses">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">Tổng khóa học đã mua</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card total-spent">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value">2.890.000₫</div>
+                            <div class="stat-label">Tổng số tiền đã chi</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card completed">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Khóa học hoàn thành</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card in-progress">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-value">4</div>
+                            <div class="stat-label">Đang học</div>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="filter-header">
+                    <i class="fas fa-filter"></i>
+                    <span>Bộ lọc và tìm kiếm</span>
+                </div>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label><i class="fas fa-search"></i> Tìm kiếm khóa học</label>
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Nhập tên khóa học..." id="searchInput">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-list"></i> Trạng thái</label>
+                        <select class="filter-control" id="statusFilter">
+                            <option value="">Tất cả</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="in-progress">Đang học</option>
+                            <option value="not-started">Chưa bắt đầu</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar"></i> Thời gian mua</label>
+                        <select class="filter-control" id="timeFilter">
+                            <option value="">Tất cả</option>
+                            <option value="this-month">Tháng này</option>
+                            <option value="last-3-months">3 tháng qua</option>
+                            <option value="this-year">Năm nay</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label style="opacity: 0;">Áp dụng</label>
+                        <button class="filter-btn" onclick="applyFilters()">
+                            <i class="fas fa-filter"></i>
+                            Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase History Table -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Danh sách khóa học đã mua</h2>
+                    <div class="table-info">
+                        Hiển thị 12 khóa học
+                    </div>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table class="purchase-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-graduation-cap"></i> Khóa học</th>
+                                <th><i class="fas fa-calendar"></i> Ngày mua</th>
+                                <th><i class="fas fa-money-bill"></i> Giá tiền</th>
+                                <th><i class="fas fa-chart-line"></i> Tiến độ</th>
+                                <th><i class="fas fa-toggle-on"></i> Trạng thái</th>
+                                <th><i class="fas fa-cogs"></i> Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchaseTableBody">
+                            <tr data-course="React JS từ cơ bản đến nâng cao" data-status="completed" data-date="2024-11-15">
+                                <td>
+                                    <div class="course-info">
+                                        <div class="course-details">
+                                            <h4>React JS từ cơ bản đến nâng cao</h4>
+                                            <div class="course-category">
+                                                <i class="fas fa-code"></i>
+                                                Lập trình Web
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>15/11/2024</td>
+                                <td>
+                                    <div class="price-info">
+                                        <div class="original-price">499.000₫</div>
+                                        <div class="final-price">299.000₫</div>
+                                        <div class="discount-badge">-40%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%"></div>
+                                        </div>
+                                        <div class="progress-text">100%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-completed">
+                                        <i class="fas fa-check-circle"></i>
+                                        Hoàn thành
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action certificate-btn" onclick="downloadCertificate(1)">
+                                            <i class="fas fa-certificate"></i>
+                                            Chứng chỉ
+                                        </button>
+                                        <button class="btn-action invoice-btn" onclick="downloadInvoice(1)">
+                                            <i class="fas fa-receipt"></i>
+                                            Hóa đơn
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-course="Python cho người mới bắt đầu" data-status="in-progress" data-date="2024-10-20">
+                                <td>
+                                    <div class="course-info">
+                                        <div class="course-details">
+                                            <h4>Python cho người mới bắt đầu</h4>
+                                            <div class="course-category">
+                                                <i class="fas fa-code"></i>
+                                                Lập trình
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>20/10/2024</td>
+                                <td>
+                                    <div class="price-info">
+                                        <div class="original-price">399.000₫</div>
+                                        <div class="final-price">199.000₫</div>
+                                        <div class="discount-badge">-50%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 65%"></div>
+                                        </div>
+                                        <div class="progress-text">65%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-in-progress">
+                                        <i class="fas fa-play-circle"></i>
+                                        Đang học
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action continue-btn" onclick="continueCourse(2)">
+                                            <i class="fas fa-play"></i>
+                                            Tiếp tục
+                                        </button>
+                                        <button class="btn-action invoice-btn" onclick="downloadInvoice(2)">
+                                            <i class="fas fa-receipt"></i>
+                                            Hóa đơn
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr data-course="Thiết kế UI/UX với Figma" data-status="completed" data-date="2024-09-12">
+                                <td>
+                                    <div class="course-info">
+                                        <div class="course-details">
+                                            <h4>Thiết kế UI/UX với Figma</h4>
+                                            <div class="course-category">
+                                                <i class="fas fa-paint-brush"></i>
+                                                Thiết kế
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>12/09/2024</td>
+                                <td>
+                                    <div class="price-info">
+                                        <div class="original-price">799.000₫</div>
+                                        <div class="final-price">559.000₫</div>
+                                        <div class="discount-badge">-30%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%"></div>
+                                        </div>
+                                        <div class="progress-text">100%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-completed">
+                                        <i class="fas fa-check-circle"></i>
+                                        Hoàn thành
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-action certificate-btn" onclick="downloadCertificate(3)">
+                                            <i class="fas fa-certificate"></i>
+                                            Chứng chỉ
+                                        </button>
+                                        <button class="btn-action invoice-btn" onclick="downloadInvoice(3)">
+                                            <i class="fas fa-receipt"></i>
+                                            Hóa đơn
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

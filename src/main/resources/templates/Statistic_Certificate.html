@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê Chứng chỉ</title>
+    <!-- Chart.js CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+	    <!-- Font Awesome for icons -->
+	    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+	    
+    
+<style>
+    /* Reset CSS */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        color: #333;
+        line-height: 1.6;
+        background-color: #f7f9fc;
+    }
+
+    /* Main Content Styles */
+    .page-wrapper {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .statistics-container {
+        width: 100%;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+    }
+
+    .page-header h1 {
+        color: #002855;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+    }
+
+    .page-header h1 i {
+        margin-right: 1rem;
+        color: #ff6b00;
+    }
+
+    .page-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        font-weight: 300;
+    }
+
+    /* Card Styles */
+    .stats-card, .chart-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stats-card:hover, .chart-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-header i {
+        font-size: 1.1rem;
+    }
+
+    /* Summary Statistics */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .summary-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b00, #e65c00);
+    }
+
+    .summary-card.certificates::before {
+        background: linear-gradient(90deg, #28a745, #20c997);
+    }
+
+    .summary-card.students::before {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+    }
+
+    .summary-card.completion::before {
+        background: linear-gradient(90deg, #ff6b00, #e65c00);
+    }
+
+    .summary-card.pending::before {
+        background: linear-gradient(90deg, #ffc107, #e0a800);
+    }
+
+    .summary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .summary-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .summary-card.certificates .summary-icon {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+
+    .summary-card.students .summary-icon {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .summary-card.completion .summary-icon {
+        background: linear-gradient(135deg, #ff6b00, #e65c00);
+    }
+
+    .summary-card.pending .summary-icon {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
+
+    .summary-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #002855;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-label {
+        color: #666;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+    }
+
+    .summary-change {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .summary-change.positive {
+        color: #28a745;
+    }
+
+    .summary-change.negative {
+        color: #dc3545;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        padding: 2rem;
+        position: relative;
+        height: 400px;
+    }
+
+    .chart-filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-group label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .filter-select {
+        padding: 0.5rem 1rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        background-color: #fafbfc;
+        color: #333;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #002855;
+        box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.1);
+    }
+
+    /* Table Styles */
+    .certificate-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+    }
+
+    .certificate-table th,
+    .certificate-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+
+    .certificate-table th {
+        background-color: #f8f9fa;
+        color: #002855;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .certificate-table th i {
+        margin-right: 0.5rem;
+        color: #ff6b00;
+    }
+
+    .certificate-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .certificate-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .course-name {
+        font-weight: 600;
+        color: #002855;
+    }
+
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-excellent {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 1px solid #28a745;
+    }
+
+    .status-good {
+        background: linear-gradient(135deg, #cce5ff 0%, #b3d9ff 100%);
+        color: #004085;
+        border: 1px solid #007bff;
+    }
+
+    .status-average {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        border: 1px solid #ffc107;
+    }
+
+    .status-low {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+        border: 1px solid #dc3545;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .progress-excellent {
+        background: linear-gradient(90deg, #28a745, #20c997);
+    }
+
+    .progress-good {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+    }
+
+    .progress-average {
+        background: linear-gradient(90deg, #ffc107, #e0a800);
+    }
+
+    .progress-low {
+        background: linear-gradient(90deg, #dc3545, #c82333);
+    }
+
+    /* Certificate Stats Grid */
+    .certificate-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .certificate-stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .certificate-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .page-wrapper {
+            padding: 0.5rem;
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .chart-container {
+            height: 350px;
+            padding: 1.5rem;
+        }
+
+        .chart-filters {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-card {
+            padding: 1.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            padding: 1rem;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
+
+        .certificate-table th,
+        .certificate-table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .summary-value {
+            font-size: 1.6rem;
+        }
+
+        .chart-container {
+            height: 250px;
+            padding: 0.75rem;
+        }
+
+        .certificate-table {
+            font-size: 0.8rem;
+        }
+
+        .certificate-table th,
+        .certificate-table td {
+            padding: 0.5rem 0.25rem;
+        }
+    }
+    /* Responsive Table & Card Fix */
+@media (max-width: 1024px) {
+    .certificate-table th,
+    .certificate-table td {
+        padding: 0.6rem 0.3rem;
+        font-size: 0.95rem;
+    }
+    .certificate-table {
+        font-size: 0.95rem;
+    }
+    .certificate-stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .certificate-table th,
+    .certificate-table td {
+        padding: 0.5rem 0.2rem;
+        font-size: 0.85rem;
+    }
+    .certificate-table {
+        font-size: 0.85rem;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .certificate-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .certificate-table th,
+    .certificate-table td {
+        padding: 0.4rem 0.1rem;
+        font-size: 0.8rem;
+    }
+    .certificate-table {
+        font-size: 0.8rem;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .certificate-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .chart-container {
+        height: 180px;
+        padding: 0.25rem;
+    }
+    #certificateChart {
+        max-width: 120px;
+        max-height: 90px;
+    }
+}
+    /* Export buttons */
+    .export-buttons {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .export-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 107, 0, 0.4);
+    }
+
+    /* Circular Progress */
+    .circular-progress {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 1rem auto;
+    }
+
+    .circular-progress svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .circular-progress .progress-circle {
+        fill: none;
+        stroke: #e9ecef;
+        stroke-width: 8;
+    }
+
+    .circular-progress .progress-bar-circle {
+        fill: none;
+        stroke: #28a745;
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 377;
+        stroke-dashoffset: 377;
+        transition: stroke-dashoffset 1s ease;
+    }
+
+    .circular-progress .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #002855;
+    }
+/* ...existing code... */
+.chart-container {
+    padding: 1rem;
+    position: relative;
+    height: 320px; /* Tăng chiều cao */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-filters {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 2;
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    gap: 1.5rem;
+}
+
+#certificateChart {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 380px;   /* Tăng kích thước tối đa */
+    max-height: 300px;  /* Tăng kích thước tối đa */
+    aspect-ratio: 1.2/1;
+    display: block;
+    margin: 0 auto;
+}
+    .chart-card {
+        margin-bottom: 2rem;
+    }
+
+    .export-buttons {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 2;
+    }
+
+    .export-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    .certificate-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .certificate-stat-card {
+        padding: 1rem;
+    }   
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+    <div class="statistics-container">
+        <div class="page-header">
+            <h1><i class="fas fa-certificate"></i> Thống kê Chứng chỉ Học viên</h1>
+            <p class="page-subtitle">Theo dõi tỷ lệ hoàn thành và cấp chứng chỉ cho học viên</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="summary-grid">
+            <div class="summary-card certificates">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-award"></i>
+                    </div>
+                </div>
+                <div class="summary-value">1,847</div>
+                <div class="summary-label">Tổng chứng chỉ đã cấp</div>
+                <div class="summary-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+12.4% so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="summary-card students">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                </div>
+                <div class="summary-value">2,456</div>
+                <div class="summary-label">Tổng số học viên đang học</div>
+                <div class="summary-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+8.9% so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="summary-card completion">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                </div>
+                <div class="summary-value">75.2%</div>
+                <div class="summary-label">Tỷ lệ hoàn thành khóa học</div>
+                <div class="summary-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>+3.7% so với tháng trước</span>
+                </div>
+            </div>
+
+            <div class="summary-card pending">
+                <div class="summary-header">
+                    <div class="summary-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="summary-value">609</div>
+                <div class="summary-label">Học viên chờ cấp chứng chỉ</div>
+                <div class="summary-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>-2.1% so với tháng trước</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificate Progress Chart -->
+        <div class="chart-card">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-pie"></i> Biểu đồ tỷ lệ hoàn thành khóa học</h2>
+                <div class="export-buttons">
+                    <button class="export-btn" onclick="exportChart('png')">
+                        <i class="fas fa-download"></i> Xuất PNG
+                    </button>
+                    <button class="export-btn" onclick="exportChart('pdf')">
+                        <i class="fas fa-file-pdf"></i> Xuất PDF
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-filters">
+                    <div class="filter-group">
+                        <label>Khoảng thời gian:</label>
+                        <select class="filter-select" id="timeRange" onchange="updateChart()">
+                            <option value="7days">7 ngày qua</option>
+                            <option value="30days" selected>30 ngày qua</option>
+                            <option value="3months">3 tháng qua</option>
+                            <option value="6months">6 tháng qua</option>
+                            <option value="1year">1 năm qua</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Loại biểu đồ:</label>
+                        <select class="filter-select" id="chartType" onchange="updateChart()">
+                            <option value="doughnut" selected>Bánh donut</option>
+                            <option value="pie">Bánh tròn</option>
+                            <option value="bar">Cột</option>
+                        </select>
+                    </div>
+                </div>
+                <canvas id="certificateChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Overall Progress -->
+        <div class="certificate-stats-grid">
+            <div class="certificate-stat-card">
+                <h3 style="text-align: center; color: #002855; margin-bottom: 1rem;">
+                    <i class="fas fa-chart-line"></i> Tỷ lệ hoàn thành tổng thể
+                </h3>
+                <div class="circular-progress">
+                    <svg>
+                        <circle class="progress-circle" cx="60" cy="60" r="50"></circle>
+                        <circle class="progress-bar-circle" cx="60" cy="60" r="50" id="overallProgress"></circle>
+                    </svg>
+                    <div class="progress-text" id="overallPercentage">75.2%</div>
+                </div>
+                <p style="text-align: center; color: #666; margin-top: 1rem;">
+                    1,847 / 2,456 học viên hoàn thành
+                </p>
+            </div>
+
+            <div class="certificate-stat-card">
+                <h3 style="text-align: center; color: #002855; margin-bottom: 1rem;">
+                    <i class="fas fa-trophy"></i> Thành tích tháng này
+                </h3>
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: 700; color: #28a745; margin-bottom: 0.5rem;">234</div>
+                    <div style="color: #666; margin-bottom: 1rem;">Chứng chỉ mới được cấp</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem;">
+                        <div>
+                            <div style="font-weight: 600; color: #007bff;">67</div>
+                            <div style="font-size: 0.8rem; color: #666;">Xuất sắc</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #28a745;">89</div>
+                            <div style="font-size: 0.8rem; color: #666;">Giỏi</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #ffc107;">54</div>
+                            <div style="font-size: 0.8rem; color: #666;">Khá</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #dc3545;">24</div>
+                            <div style="font-size: 0.8rem; color: #666;">Trung bình</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificate Statistics by Course Table -->
+        <div class="chart-card">
+            <div class="card-header">
+                <h2><i class="fas fa-graduation-cap"></i> Thống kê chứng chỉ theo khóa học</h2>
+            </div>
+            <div style="padding: 2rem;">
+                <table class="certificate-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> STT</th>
+                            <th><i class="fas fa-book"></i> Tên khóa học</th>
+                            <th><i class="fas fa-users"></i> Tổng học viên</th>
+                            <th><i class="fas fa-certificate"></i> Đã cấp chứng chỉ</th>
+                            <th><i class="fas fa-percentage"></i> Tỷ lệ hoàn thành</th>
+                            <th><i class="fas fa-chart-bar"></i> Tiến độ</th>
+                            <th><i class="fas fa-star"></i> Xếp loại</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td class="course-name">React JS từ cơ bản đến nâng cao</td>
+                            <td>324</td>
+                            <td><strong style="color: #28a745;">287</strong></td>
+                            <td><strong style="color: #28a745;">88.6%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-excellent" style="width: 88.6%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-excellent">Xuất sắc</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td class="course-name">Node.js Backend Development</td>
+                            <td>287</td>
+                            <td><strong style="color: #007bff;">234</strong></td>
+                            <td><strong style="color: #007bff;">81.5%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-good" style="width: 81.5%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-good">Giỏi</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td class="course-name">Python cho Data Science</td>
+                            <td>256</td>
+                            <td><strong style="color: #007bff;">198</strong></td>
+                            <td><strong style="color: #007bff;">77.3%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-good" style="width: 77.3%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-good">Giỏi</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td class="course-name">Flutter Mobile Development</td>
+                            <td>198</td>
+                            <td><strong style="color: #ffc107;">134</strong></td>
+                            <td><strong style="color: #ffc107;">67.7%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-average" style="width: 67.7%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-average">Khá</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td class="course-name">UI/UX Design Master Class</td>
+                            <td>145</td>
+                            <td><strong style="color: #dc3545;">78</strong></td>
+                            <td><strong style="color: #dc3545;">53.8%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-low" style="width: 53.8%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-low">Trung bình</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>6</strong></td>
+                            <td class="course-name">DevOps và Cloud Computing</td>
+                            <td>189</td>
+                            <td><strong style="color: #007bff;">145</strong></td>
+                            <td><strong style="color: #007bff;">76.7%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-good" style="width: 76.7%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-good">Giỏi</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>7</strong></td>
+                            <td class="course-name">Machine Learning cơ bản</td>
+                            <td>167</td>
+                            <td><strong style="color: #ffc107;">89</strong></td>
+                            <td><strong style="color: #ffc107;">53.3%</strong></td>
+                            <td>
+                                <div class="progress-bar">
+                                    <div class="progress-fill progress-average" style="width: 53.3%;"></div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge status-average">Khá</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let certificateChart;
+
+// Dữ liệu mẫu cho biểu đồ chứng chỉ
+const certificateData = {
+    '30days': {
+        labels: ['Đã hoàn thành', 'Đang học', 'Chưa hoàn thành'],
+        data: [1847, 609, 234],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+    },
+    '7days': {
+        labels: ['Đã hoàn thành', 'Đang học', 'Chưa hoàn thành'],
+        data: [145, 89, 23],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+    },
+    '3months': {
+        labels: ['Đã hoàn thành', 'Đang học', 'Chưa hoàn thành'],
+        data: [3200, 900, 400],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+    },
+    '6months': {
+        labels: ['Đã hoàn thành', 'Đang học', 'Chưa hoàn thành'],
+        data: [5400, 1200, 600],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+    },
+    '1year': {
+        labels: ['Đã hoàn thành', 'Đang học', 'Chưa hoàn thành'],
+        data: [9000, 2000, 900],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+    }
+};
+
+// Hàm khởi tạo biểu đồ
+function renderCertificateChart() {
+    const timeRange = document.getElementById('timeRange').value;
+    const chartType = document.getElementById('chartType').value;
+    const ctx = document.getElementById('certificateChart').getContext('2d');
+    const data = certificateData[timeRange];
+
+    if (certificateChart) {
+        certificateChart.destroy();
+    }
+
+    certificateChart = new Chart(ctx, {
+        type: chartType,
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Số lượng chứng chỉ',
+                data: data.data,
+                backgroundColor: data.backgroundColor,
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: chartType === 'bar' ? 'top' : 'right',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 40, 85, 0.9)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: '#ff6b00',
+                    borderWidth: 2,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed * 100) / total).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            scales: chartType === 'bar' ? {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            } : {},
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+
+
+    // Cập nhật tỷ lệ hoàn thành tổng thể
+    const overallProgress = document.getElementById('overallProgress');
+    const overallPercentage = document.getElementById('overallPercentage');
+    const totalCompleted = data.data[0];
+    const totalStudents = data.data.reduce((a, b) => a + b, 0);
+    const percentage = ((totalCompleted / totalStudents) * 100).toFixed(1);
+
+    overallProgress.style.strokeDashoffset = 377 - (377 * (percentage / 100));
+    overallPercentage.textContent = `${percentage}%`;
+}
+
+// Sự kiện thay đổi filter
+function updateChart() {
+    renderCertificateChart();
+}
+
+// Khởi tạo biểu đồ mặc định
+document.addEventListener('DOMContentLoaded', function () {
+    renderCertificateChart();
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Font Awesome for icons -->
+   
+    
+</body>
+</html>

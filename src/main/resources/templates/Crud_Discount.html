@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html
+  th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}"
+  xmlns:th="http://www.thymeleaf.org"
+>
+  <head>
+    <title>Quản lý giảm giá</title>
+    <!-- Select2 CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for icons -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Reset CSS */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        color: #333;
+        line-height: 1.6;
+        background-color: #f7f9fc;
+      }
+
+      /* Main Content Styles - Tương tự như Crud_Course */
+      .page-wrapper {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+
+      .discount-container {
+        width: 100%;
+      }
+
+      .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem 0;
+      }
+
+      .page-header h1 {
+        color: #002855;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 700;
+      }
+
+      .page-header h1 i {
+        margin-right: 1rem;
+        color: #ff6b00;
+      }
+
+      .page-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        font-weight: 300;
+      }
+
+      /* Card Styles */
+      .form-card,
+      .table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .form-card:hover,
+      .table-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .card-header h2 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .card-header i {
+        font-size: 1.1rem;
+      }
+
+      /* Form Styles */
+      .discount-form {
+        padding: 2rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+      }
+
+      .form-group label i {
+        color: #002855;
+        width: 16px;
+      }
+
+      .form-group label .required {
+        color: #dc3545;
+        margin-left: 0.25rem;
+      }
+
+      .help-text {
+        color: #6c757d;
+        font-weight: 400;
+        font-size: 0.85rem;
+        margin-left: auto;
+        font-style: italic;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s ease;
+        background-color: #fafbfc;
+      }
+
+      .form-control:focus {
+        border-color: #002855;
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.1);
+      }
+
+      .form-control:invalid {
+        border-color: #dc3545;
+      }
+
+      .form-control::placeholder {
+        color: #adb5bd;
+      }
+
+      /* Target fields animation */
+      .target-field {
+        animation: slideInDown 0.4s ease-out;
+        border-left: 4px solid #ff6b00;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #fff8f5 0%, #fffaf7 100%);
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 15px rgba(255, 107, 0, 0.1);
+      }
+
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .selection-info {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background-color: rgba(0, 40, 85, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid #002855;
+      }
+
+      .selection-info small {
+        color: #002855;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* Select2 Customization */
+      .select2-container {
+        width: 100% !important;
+      }
+
+      .select2-container .select2-selection--multiple {
+        border: 2px solid #e1e5e9 !important;
+        border-radius: 10px !important;
+        min-height: 50px !important;
+        background-color: #fafbfc !important;
+        padding: 0.25rem !important;
+      }
+
+      .select2-container--default.select2-container--focus
+        .select2-selection--multiple {
+        border-color: #002855 !important;
+        box-shadow: 0 0 0 3px rgba(0, 40, 85, 0.1) !important;
+      }
+
+      .select2-container--default
+        .select2-selection--multiple
+        .select2-selection__choice {
+        background: linear-gradient(
+          135deg,
+          #002855 0%,
+          #001f42 100%
+        ) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        margin: 4px !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+      }
+
+      .select2-container--default
+        .select2-selection--multiple
+        .select2-selection__choice__remove {
+        color: white !important;
+        margin-right: 8px !important;
+        font-weight: bold !important;
+      }
+
+      .select2-container--default
+        .select2-selection--multiple
+        .select2-selection__choice__remove:hover {
+        color: #ffcccb !important;
+      }
+
+      .select2-dropdown {
+        border: 2px solid #e1e5e9 !important;
+        border-radius: 10px !important;
+      }
+
+      .select2-results__option--highlighted {
+        background-color: #002855 !important;
+      }
+
+      /* Form Actions */
+      .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e9ecef;
+      }
+
+      .save-btn,
+      .reset-btn {
+        padding: 0.875rem 2rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .save-btn {
+        background: linear-gradient(135deg, #002855 0%, #001f42 100%);
+        color: white;
+      }
+
+      .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 40, 85, 0.3);
+      }
+
+      .reset-btn {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+      }
+
+      .reset-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+      }
+
+      /* Table Styles */
+      .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .search-box,
+      .filter-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 12px;
+        color: #adb5bd;
+        z-index: 1;
+      }
+
+      .search-box input {
+        padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        width: 300px;
+      }
+
+      .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .search-box input:focus {
+        outline: none;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .filter-box select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        width: 200px;
+      }
+
+      .filter-box select option {
+        background-color: #002855;
+        color: white;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+      }
+
+      .discount-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+      }
+
+      .discount-table th,
+      .discount-table td {
+        padding: 1.25rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+      }
+
+      .discount-table th {
+        background-color: #f8f9fa;
+        color: #002855;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .discount-table th i {
+        margin-right: 0.5rem;
+        color: #ff6b00;
+      }
+
+      .discount-table tbody tr {
+        transition: background-color 0.2s ease;
+      }
+
+      .discount-table tbody tr:hover {
+        background-color: #f8f9fa;
+      }
+
+      .discount-name strong {
+        color: #002855;
+        font-size: 1rem;
+      }
+
+      .discount-value {
+        background: linear-gradient(135deg, #ff6b00 0%, #e65c00 100%);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+      }
+
+      .date-range {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .start-date,
+      .end-date {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .start-date i {
+        color: #28a745;
+      }
+
+      .end-date i {
+        color: #dc3545;
+      }
+
+      .target-type {
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .target-type.category {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        border: 1px solid #bbdefb;
+      }
+
+      .target-type.course {
+        background-color: #f3e5f5;
+        color: #7b1fa2;
+        border: 1px solid #e1bee7;
+      }
+
+      .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-active {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        color: #155724;
+        border: 2px solid #28a745;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+      }
+
+      .status-inactive {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #721c24;
+        border: 2px solid #dc3545;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .btn-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .edit-btn {
+        background-color: #ff6b00;
+        color: white;
+      }
+
+      .edit-btn:hover {
+        background-color: #e65c00;
+      }
+
+      .delete-btn {
+        background-color: #dc3545;
+        color: white;
+      }
+
+      .delete-btn:hover {
+        background-color: #c82333;
+      }
+
+      /* Delete Confirmation Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .delete-modal-content {
+        background-color: white;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .delete-modal-content p {
+        margin-bottom: 1.5rem;
+        color: #333;
+        font-size: 1rem;
+      }
+
+      /* Custom styles for delete modal buttons */
+      .delete-modal-content .cancel-btn {
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+        background-color: #dc3545;
+        color: white;
+      }
+
+      .delete-modal-content .cancel-btn:hover {
+        background-color: #5a6268;
+      }
+
+      .delete-modal-content .delete-btn {
+        padding: 0.6rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+        background-color: #6c757d;
+        color: white;
+      }
+
+      .delete-modal-content .delete-btn:hover {
+        background-color: #5a6268;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px) {
+        .page-wrapper {
+          padding: 0.5rem;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .page-header h1 {
+          font-size: 2rem;
+        }
+
+        .table-actions {
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .search-box input,
+        .filter-box select {
+          width: 100%;
+        }
+
+        .discount-table th,
+        .discount-table td {
+          padding: 0.8rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .page-wrapper {
+          padding: 1rem 0.5rem;
+        }
+
+        .discount-form {
+          padding: 1.5rem;
+        }
+
+        .card-header {
+          padding: 1rem 1.5rem;
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .discount-table th,
+        .discount-table td {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.9rem;
+        }
+
+        .form-actions {
+          flex-direction: column;
+        }
+
+        .save-btn,
+        .reset-btn {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .date-range {
+          font-size: 0.8rem;
+        }
+
+        .action-buttons {
+          flex-wrap: wrap;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .page-header h1 {
+          font-size: 1.75rem;
+        }
+
+        .page-subtitle {
+          font-size: 0.8rem;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .btn-action {
+          width: 35px;
+          height: 35px;
+        }
+
+        .target-field {
+          padding: 1rem;
+        }
+
+        .discount-value {
+          font-size: 0.8rem;
+          padding: 0.3rem 0.6rem;
+        }
+
+        .status-badge {
+          font-size: 0.75rem;
+          padding: 0.4rem 0.8rem;
+        }
+
+        .discount-table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+      }
+
+      /* Loading and animation states */
+      .form-loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .btn-loading {
+        position: relative;
+        color: transparent !important;
+      }
+
+      .btn-loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-top-color: #ffffff;
+        animation: spin 1s ease-infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Success/Error alerts */
+      .alert {
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      /* Selected row */
+      .selected-row {
+        background-color: rgba(0, 40, 85, 0.05) !important;
+        border-left: 4px solid #002855;
+      }
+
+      .discount-table tbody tr.selected-row:hover {
+        background-color: rgba(0, 40, 85, 0.08) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <div class="discount-container">
+        <div class="page-header">
+          <h1>
+            <i class="fas fa-percentage"></i> Quản lý chương trình giảm giá
+          </h1>
+          <p class="page-subtitle">
+            Tạo và quản lý các chương trình khuyến mãi
+          </p>
+        </div>
+
+        <!-- Hiển thị thông báo lỗi/thành công -->
+        <div
+          class="alert alert-success"
+          th:if="${successMessage}"
+          th:text="${successMessage}"
+        ></div>
+        <div
+          class="alert alert-error"
+          th:if="${errorMessage}"
+          th:text="${errorMessage}"
+        ></div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+          <div class="card-header">
+            <h2 th:if="${!isEdit}">
+              <i class="fas fa-plus-circle"></i> Thêm chương trình giảm giá
+            </h2>
+            <h2 th:if="${isEdit}">
+              <i class="fas fa-edit"></i> Cập nhật chương trình giảm giá
+            </h2>
+          </div>
+
+          <!-- Form Thêm mới -->
+          <form
+            id="addDiscountForm"
+            th:action="@{/admin/discount/save}"
+            method="post"
+            class="discount-form"
+            th:unless="${isEdit}"
+          >
+            <div class="form-row">
+              <div class="form-group">
+                <label for="discountName">
+                  <i class="fas fa-tag"></i>
+                  Tên giảm giá <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="discountName"
+                  class="form-control"
+                  name="discountName"
+                  placeholder="Nhập tên chương trình giảm giá"
+                  th:value="${discountName}"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="discountValue">
+                  <i class="fas fa-percentage"></i>
+                  Giá trị giảm (%) <span class="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="discountValue"
+                  class="form-control"
+                  name="discountValue"
+                  min="0"
+                  max="100"
+                  placeholder="0-100"
+                  th:value="${discountValue}"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="startDate">
+                  <i class="fas fa-calendar-alt"></i>
+                  Ngày bắt đầu <span class="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="startDate"
+                  class="form-control"
+                  name="startDate"
+                  th:value="${startDate}"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="endDate">
+                  <i class="fas fa-calendar-alt"></i>
+                  Ngày kết thúc <span class="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="endDate"
+                  class="form-control"
+                  name="endDate"
+                  th:value="${endDate}"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="discountType">
+                <i class="fas fa-list"></i>
+                Loại giảm giá <span class="required">*</span>
+              </label>
+              <select
+                class="form-control select2"
+                id="discountType"
+                name="discountType"
+                onchange="toggleTargetFields()"
+                th:value="${discountType}"
+                required
+              >
+                <option value="">-- Chọn loại giảm giá --</option>
+                <option value="category">Theo danh mục sản phẩm</option>
+                <option value="course">Theo khóa học cụ thể</option>
+              </select>
+            </div>
+
+            <!-- Chọn nhiều danh mục -->
+            <div
+              class="form-group target-field"
+              id="categorySelect"
+              style="display: none"
+            >
+              <label for="categorySelect2">
+                <i class="fas fa-folder-open"></i>
+                Chọn danh mục áp dụng <span class="required">*</span>
+                <span class="help-text">Có thể chọn nhiều danh mục</span>
+              </label>
+              <select
+                class="form-control select2-multiple"
+                id="categorySelect2"
+                name="categoryIds[]"
+                multiple
+              >
+                <option
+                  th:each="cat : ${categories}"
+                  th:value="${cat.id}"
+                  th:text="${cat.tenDanhMuc}"
+                ></option>
+              </select>
+              <div class="selection-info">
+                <small
+                  ><i class="fas fa-info-circle"></i> Giảm giá sẽ áp dụng cho
+                  tất cả khóa học trong danh mục được chọn</small
+                >
+              </div>
+            </div>
+
+            <!-- Chọn nhiều khóa học -->
+            <div
+              class="form-group target-field"
+              id="courseSelect"
+              style="display: none"
+            >
+              <label for="courseSelect2">
+                <i class="fas fa-graduation-cap"></i>
+                Chọn khóa học áp dụng <span class="required">*</span>
+                <span class="help-text">Có thể chọn nhiều khóa học</span>
+              </label>
+              <select
+                class="form-control select2-multiple"
+                id="courseSelect2"
+                name="courseIds[]"
+                multiple
+              >
+                <option
+                  th:each="course : ${courses}"
+                  th:value="${course.ID_khoa_hoc}"
+                  th:text="${course.ten_khoa_hoc}"
+                ></option>
+              </select>
+              <div class="selection-info">
+                <small
+                  ><i class="fas fa-info-circle"></i> Giảm giá chỉ áp dụng cho
+                  các khóa học được chọn cụ thể</small
+                >
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="save-btn">
+                <i class="fas fa-save"></i>
+                Lưu chương trình giảm giá
+              </button>
+              <button type="reset" class="reset-btn" onclick="resetForm()">
+                <i class="fas fa-undo"></i>
+                Đặt lại form
+              </button>
+            </div>
+          </form>
+
+          <!-- Form cập nhật -->
+          <form
+            id="editDiscountForm"
+            th:action="@{/admin/discount/update/{id}(id=${discount != null ? discount.id() : ''})}"
+            method="post"
+            class="discount-form"
+            th:if="${isEdit}"
+          >
+            <div class="form-row">
+              <div class="form-group">
+                <label for="discountName">
+                  <i class="fas fa-tag"></i>
+                  Tên giảm giá <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="discountName"
+                  class="form-control"
+                  name="discountName"
+                  placeholder="Nhập tên chương trình giảm giá"
+                  th:value="${discount != null ? discount.discountName() : ''}"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="discountValue">
+                  <i class="fas fa-percentage"></i>
+                  Giá trị giảm (%) <span class="required">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="discountValue"
+                  class="form-control"
+                  name="discountValue"
+                  min="0"
+                  max="100"
+                  placeholder="0-100"
+                  th:value="${discount != null ? discount.discountValue() : ''}"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="startDate">
+                  <i class="fas fa-calendar-alt"></i>
+                  Ngày bắt đầu <span class="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="startDate"
+                  class="form-control"
+                  name="startDate"
+                  th:value="${discount != null ? discount.startDate() : ''}"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="endDate">
+                  <i class="fas fa-calendar-alt"></i>
+                  Ngày kết thúc <span class="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="endDate"
+                  class="form-control"
+                  name="endDate"
+                  th:value="${discount != null ? discount.endDate() : ''}"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="discountType">
+                  <i class="fas fa-list"></i>
+                  Loại giảm giá <span class="required">*</span>
+                </label>
+                <select
+                  class="form-control select2"
+                  id="discountType"
+                  name="discountType"
+                  onchange="toggleTargetFields()"
+                  required
+                >
+                  <option value="">-- Chọn loại giảm giá --</option>
+                  <option
+                    value="category"
+                    th:selected="${discountType == 'category'}"
+                  >
+                    Theo danh mục sản phẩm
+                  </option>
+                  <option
+                    value="course"
+                    th:selected="${discountType == 'course'}"
+                  >
+                    Theo khóa học cụ thể
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="status">
+                  <i class="fas fa-toggle-on"></i>
+                  Trạng thái
+                </label>
+                <select class="form-control" id="status" name="status">
+                  <option
+                    value="true"
+                    th:selected="${discount != null && discount.status() == true}"
+                  >
+                    Hoạt động
+                  </option>
+                  <option
+                    value="false"
+                    th:selected="${discount != null && discount.status() == false}"
+                  >
+                    Không hoạt động
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Chọn nhiều danh mục -->
+            <div
+              class="form-group target-field"
+              id="categorySelect"
+              th:style="${discountType == 'category' ? 'display: block;' : 'display: none;'}"
+            >
+              <label for="categorySelect2">
+                <i class="fas fa-folder-open"></i>
+                Chọn danh mục áp dụng <span class="required">*</span>
+                <span class="help-text">Có thể chọn nhiều danh mục</span>
+              </label>
+              <select
+                class="form-control select2-multiple"
+                id="categorySelect2"
+                name="categoryIds[]"
+                multiple
+              >
+                <option
+                  th:each="cat : ${categories}"
+                  th:value="${cat.id}"
+                  th:text="${cat.tenDanhMuc}"
+                  th:selected="${discount != null && discount.categoryIds() != null && discount.categoryIds().contains(cat.id)}"
+                ></option>
+              </select>
+              <div class="selection-info">
+                <small
+                  ><i class="fas fa-info-circle"></i> Giảm giá sẽ áp dụng cho
+                  tất cả khóa học trong danh mục được chọn</small
+                >
+              </div>
+            </div>
+
+            <!-- Chọn nhiều khóa học -->
+            <div
+              class="form-group target-field"
+              id="courseSelect"
+              th:style="${discountType == 'course' ? 'display: block;' : 'display: none;'}"
+            >
+              <label for="courseSelect2">
+                <i class="fas fa-graduation-cap"></i>
+                Chọn khóa học áp dụng <span class="required">*</span>
+                <span class="help-text">Có thể chọn nhiều khóa học</span>
+              </label>
+              <select
+                class="form-control select2-multiple"
+                id="courseSelect2"
+                name="courseIds[]"
+                multiple
+              >
+                <option
+                  th:each="course : ${courses}"
+                  th:value="${course.ID_khoa_hoc}"
+                  th:text="${course.ten_khoa_hoc}"
+                  th:selected="${discount != null && discount.courseIds() != null && discount.courseIds().contains(course.ID_khoa_hoc)}"
+                ></option>
+              </select>
+              <div class="selection-info">
+                <small
+                  ><i class="fas fa-info-circle"></i> Giảm giá chỉ áp dụng cho
+                  các khóa học được chọn cụ thể</small
+                >
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="save-btn">
+                <i class="fas fa-save"></i>
+                Cập nhật chương trình giảm giá
+              </button>
+              <a th:href="@{/admin/discount}" class="reset-btn">
+                <i class="fas fa-arrow-left"></i>
+                Quay lại
+              </a>
+            </div>
+          </form>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+          <div class="card-header">
+            <h2><i class="fas fa-list"></i> Danh sách chương trình giảm giá</h2>
+            <div class="table-actions">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo tên chương trình..."
+                />
+              </div>
+              <div class="filter-box">
+                <select
+                  class="form-control"
+                  id="statusFilter"
+                  onchange="filterByStatus()"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="active">Hoạt động</option>
+                  <option value="inactive">Không hoạt động</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table class="discount-table">
+              <thead>
+                <tr>
+                  <th><i class="fas fa-tag"></i> Tên chương trình</th>
+                  <th><i class="fas fa-percentage"></i> Giá trị (%)</th>
+                  <th><i class="fas fa-calendar-alt"></i> Thời gian</th>
+                  <th><i class="fas fa-bullseye"></i> Đối tượng áp dụng</th>
+                  <th><i class="fas fa-toggle-on"></i> Trạng thái</th>
+                  <th><i class="fas fa-cogs"></i> Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Hiển thị dữ liệu thực từ model -->
+                <tr th:each="item : ${discounts}">
+                  <td>
+                    <div class="discount-name">
+                      <strong th:text="${item.discountName()}"
+                        >Khuyến mãi Black Friday 2024</strong
+                      >
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      class="discount-value"
+                      th:text="${item.discountValue() + '%'}"
+                      >50%</span
+                    >
+                  </td>
+                  <td>
+                    <div class="date-range">
+                      <div class="start-date">
+                        <i class="fas fa-play"></i>
+                        <span
+                          th:text="${#temporals.format(item.startDate(), 'dd/MM/yyyy')}"
+                          >20/11/2024</span
+                        >
+                      </div>
+                      <div class="end-date">
+                        <i class="fas fa-stop"></i>
+                        <span
+                          th:text="${#temporals.format(item.endDate(), 'dd/MM/yyyy')}"
+                          >30/11/2024</span
+                        >
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      class="target-type category"
+                      th:if="${item.categoryIds() != null && !item.categoryIds().isEmpty()}"
+                    >
+                      <i class="fas fa-folder"></i> Danh mục
+                    </span>
+                    <span
+                      class="target-type course"
+                      th:if="${item.courseIds() != null && !item.courseIds().isEmpty()}"
+                    >
+                      <i class="fas fa-graduation-cap"></i> Khóa học
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      class="status-badge"
+                      th:classappend="${item.status() ? 'status-active' : 'status-inactive'}"
+                      th:data-status="${item.status() ? 'active' : 'inactive'}"
+                    >
+                      <i
+                        class="fas"
+                        th:classappend="${item.status() ? 'fa-check-circle' : 'fa-pause-circle'}"
+                      ></i>
+                      <span
+                        th:text="${item.status() ? 'Hoạt động' : 'Không hoạt động'}"
+                        >Hoạt động</span
+                      >
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <a
+                        th:href="@{/admin/discount/edit/{id}(id=${item.id()})}"
+                        class="btn-action edit-btn"
+                        title="Chỉnh sửa"
+                      >
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <button
+                        class="btn-action delete-btn"
+                        th:onclick="'openDeleteModal(' + ${item.id()} + ')'"
+                        title="Xóa"
+                      >
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Hiển thị thông báo nếu không có dữ liệu -->
+                <tr th:if="${discounts == null || discounts.isEmpty()}">
+                  <td colspan="6" class="text-center">
+                    <div class="alert alert-info">
+                      <i class="fas fa-info-circle"></i> Chưa có chương trình
+                      giảm giá nào được tạo.
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div class="modal" id="delete-discount-modal">
+          <div class="delete-modal-content">
+            <p>
+              Xóa chương trình giảm giá này sẽ không thể khôi phục. Bạn có chắc
+              chắn?
+            </p>
+            <div class="modal-footer">
+              <button
+                class="cancel-btn"
+                onclick="closeModal('delete-discount-modal')"
+              >
+                Hủy
+              </button>
+              <a href="#" id="confirm-delete-btn" class="delete-btn">Xóa</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <th:block th:fragment="scripts">
+      <!-- Select2 CDN -->
+      <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+      ></script>
+      <script
+        src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"
+      ></script>
+
+      <script>
+        // Toggle hiển thị các trường chọn mục tiêu
+        function toggleTargetFields() {
+          const type = document.getElementById("discountType").value;
+          const categorySelect = document.getElementById("categorySelect");
+          const courseSelect = document.getElementById("courseSelect");
+          const categorySelect2 = document.getElementById("categorySelect2");
+          const courseSelect2 = document.getElementById("courseSelect2");
+
+          // Ẩn tất cả trước
+          categorySelect.style.display = "none";
+          courseSelect.style.display = "none";
+          categorySelect2.removeAttribute("required");
+          courseSelect2.removeAttribute("required");
+
+          // Hiển thị theo lựa chọn
+          if (type === "category") {
+            categorySelect.style.display = "block";
+            categorySelect2.setAttribute("required", "");
+            // Reset lựa chọn khóa học khi chọn danh mục
+            $("#courseSelect2").val(null).trigger("change");
+          } else if (type === "course") {
+            courseSelect.style.display = "block";
+            courseSelect2.setAttribute("required", "");
+            // Reset lựa chọn danh mục khi chọn khóa học
+            $("#categorySelect2").val(null).trigger("change");
+          }
+        }
+
+        // Reset form và các trường động
+        function resetForm() {
+          document.querySelector(".discount-form").reset();
+          document.getElementById("categorySelect").style.display = "none";
+          document.getElementById("courseSelect").style.display = "none";
+          $("#categorySelect2").val(null).trigger("change");
+          $("#courseSelect2").val(null).trigger("change");
+          document
+            .getElementById("categorySelect2")
+            .removeAttribute("required");
+          document.getElementById("courseSelect2").removeAttribute("required");
+          // Reset ngày
+          const today = new Date();
+          const todayString = today.toISOString().split("T")[0];
+          const nextMonth = new Date(
+            today.getFullYear(),
+            today.getMonth() + 1,
+            today.getDate()
+          );
+          const nextMonthString = nextMonth.toISOString().split("T")[0];
+          document.getElementById("startDate").value = todayString;
+          document.getElementById("endDate").value = nextMonthString;
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+          document.getElementById(modalId).style.display = "flex";
+        }
+
+        function closeModal(modalId) {
+          document.getElementById(modalId).style.display = "none";
+        }
+
+        // Open delete modal with discount ID
+        function openDeleteModal(id) {
+          const modal = document.getElementById("delete-discount-modal");
+          const confirmBtn = document.getElementById("confirm-delete-btn");
+          // Update the confirm button's onclick to redirect to delete URL
+          confirmBtn.href = `/admin/discount/delete/${id}`;
+          openModal("delete-discount-modal");
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+          const modal = document.getElementById("delete-discount-modal");
+          if (event.target === modal) {
+            modal.style.display = "none";
+          }
+        };
+
+        // Lọc theo trạng thái
+        function filterByStatus() {
+          const filter = document.getElementById("statusFilter").value;
+          const rows = document.querySelectorAll(".discount-table tbody tr");
+
+          rows.forEach((row) => {
+            if (!filter) {
+              row.style.display = "";
+            } else {
+              const statusBadge = row.querySelector(".status-badge");
+              const status = statusBadge
+                ? statusBadge.getAttribute("data-status")
+                : "";
+              row.style.display = status === filter ? "" : "none";
+            }
+          });
+        }
+
+        // Tìm kiếm trong bảng
+        function searchTable() {
+          const searchInput = document.querySelector(".search-box input");
+          const filter = searchInput.value.toLowerCase();
+          const rows = document.querySelectorAll(".discount-table tbody tr");
+
+          rows.forEach((row) => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+          });
+        }
+
+        // Validation form
+        function validateForm() {
+          const startDate = new Date(
+            document.getElementById("startDate").value
+          );
+          const endDate = new Date(document.getElementById("endDate").value);
+          const discountType = document.getElementById("discountType").value;
+
+          // Kiểm tra ngày
+          if (!startDate || !endDate) {
+            alert("❌ Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!");
+            return false;
+          }
+          if (startDate >= endDate) {
+            alert("❌ Ngày kết thúc phải sau ngày bắt đầu!");
+            return false;
+          }
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (startDate < today) {
+            alert("❌ Ngày bắt đầu không được trong quá khứ!");
+            return false;
+          }
+
+          // Kiểm tra loại giảm giá
+          if (!discountType) {
+            alert("❌ Vui lòng chọn loại giảm giá!");
+            return false;
+          }
+
+          // Kiểm tra mục tiêu áp dụng
+          if (discountType === "category") {
+            const selectedCategories = $("#categorySelect2").val();
+            if (!selectedCategories || selectedCategories.length === 0) {
+              alert("❌ Vui lòng chọn ít nhất một danh mục!");
+              return false;
+            }
+
+            // Đảm bảo không chọn khóa học
+            const selectedCourses = $("#courseSelect2").val();
+            if (selectedCourses && selectedCourses.length > 0) {
+              alert(
+                "❌ Không thể chọn cả danh mục và khóa học! Vui lòng chọn một trong hai."
+              );
+              return false;
+            }
+          } else if (discountType === "course") {
+            const selectedCourses = $("#courseSelect2").val();
+            if (!selectedCourses || selectedCourses.length === 0) {
+              alert("❌ Vui lòng chọn ít nhất một khóa học!");
+              return false;
+            }
+
+            // Đảm bảo không chọn danh mục
+            const selectedCategories = $("#categorySelect2").val();
+            if (selectedCategories && selectedCategories.length > 0) {
+              alert(
+                "❌ Không thể chọn cả danh mục và khóa học! Vui lòng chọn một trong hai."
+              );
+              return false;
+            }
+          } else {
+            alert("❌ Vui lòng chọn loại giảm giá!");
+            return false;
+          }
+
+          return true;
+        }
+
+        // Hiệu ứng loading khi submit form
+        function showLoading(button) {
+          button.classList.add("btn-loading");
+          button.disabled = true;
+          document
+            .querySelector(".discount-form")
+            .classList.add("form-loading");
+        }
+
+        // Khởi tạo khi trang load
+        window.addEventListener("DOMContentLoaded", function () {
+          // Khởi tạo Select2
+          $("#categorySelect2").select2({
+            placeholder: "🔍 Tìm và chọn danh mục...",
+            allowClear: true,
+            width: "100%",
+            closeOnSelect: false,
+            language: {
+              noResults: function () {
+                return "Không tìm thấy danh mục nào";
+              },
+              searching: function () {
+                return "Đang tìm kiếm...";
+              },
+            },
+          });
+
+          $("#courseSelect2").select2({
+            placeholder: "🔍 Tìm và chọn khóa học...",
+            allowClear: true,
+            width: "100%",
+            closeOnSelect: false,
+            language: {
+              noResults: function () {
+                return "Không tìm thấy khóa học nào";
+              },
+              searching: function () {
+                return "Đang tìm kiếm...";
+              },
+            },
+          });
+
+          // Khởi tạo trạng thái ban đầu của form
+          toggleTargetFields();
+
+          // Thêm event listener cho tìm kiếm
+          const searchInput = document.querySelector(".search-box input");
+          if (searchInput) {
+            searchInput.addEventListener("input", searchTable);
+          }
+
+          // Validation khi submit form
+          const forms = document.querySelectorAll(".discount-form");
+          if (forms.length > 0) {
+            forms.forEach((form) => {
+              form.addEventListener("submit", function (e) {
+                if (!validateForm()) {
+                  e.preventDefault();
+                  return false;
+                }
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                  showLoading(submitBtn);
+                }
+              });
+            });
+          }
+
+          // Set ngày mặc định cho form tạo mới (không phải form edit)
+          const addForm = document.getElementById("addDiscountForm");
+          if (addForm) {
+            const today = new Date();
+            const todayString = today.toISOString().split("T")[0];
+            const nextMonth = new Date(
+              today.getFullYear(),
+              today.getMonth() + 1,
+              today.getDate()
+            );
+            const nextMonthString = nextMonth.toISOString().split("T")[0];
+
+            const startDateInput = addForm.querySelector("#startDate");
+            const endDateInput = addForm.querySelector("#endDate");
+
+            if (startDateInput && !startDateInput.value) {
+              startDateInput.value = todayString;
+            }
+
+            if (endDateInput && !endDateInput.value) {
+              endDateInput.value = nextMonthString;
+            }
+          }
+
+          // Auto-hide success/error messages sau 5 giây
+          setTimeout(() => {
+            const alerts = document.querySelectorAll(".alert");
+            alerts.forEach((alert) => {
+              if (alert) {
+                alert.style.opacity = "0";
+                alert.style.transform = "translateY(-20px)";
+                setTimeout(() => {
+                  if (alert.parentNode) {
+                    alert.remove();
+                  }
+                }, 300);
+              }
+            });
+          }, 5000);
+        });
+      </script>
+    </th:block>
+  </body>
+</html>

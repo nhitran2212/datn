@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh Toán - EDU102</title>
+  <style>
+    /* Reset CSS */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      color: #333;
+      line-height: 1.6;
+      background-color: #f7f9fc;
+    }
+
+    /* Payment Page Styles */
+    .payment-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .payment-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .payment-header h1 {
+      color: #002855;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .payment-header p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .payment-items {
+      margin-bottom: 2rem;
+    }
+
+    .payment-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .payment-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-name {
+      font-weight: 500;
+      color: #002855;
+    }
+
+    .item-price {
+      font-weight: bold;
+    }
+
+    .item-price.free {
+      color: #28a745;
+    }
+
+    .payment-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem 0;
+      font-weight: bold;
+      color: #002855;
+      border-top: 2px solid #002855;
+      margin-bottom: 2rem;
+    }
+
+    .payment-qr {
+      text-align: center;
+      padding: 1.5rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    .payment-qr img {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 1rem;
+    }
+
+    .payment-qr .bank-info {
+      margin-bottom: 1.5rem;
+    }
+
+    .bank-info p {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .bank-info .bank-name {
+      color: #ff6b00;
+      font-weight: bold;
+    }
+
+    .bank-info .account-name {
+      font-weight: 500;
+    }
+
+    .bank-info .account-number {
+      font-weight: 500;
+      color: #002855;
+    }
+
+    .payment-qr .note {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 1rem;
+      line-height: 1.4;
+    }
+
+    .payment-qr .note span {
+      color: #ff6b00;
+      font-weight: 500;
+    }
+
+    .cancel-btn {
+      display: block;
+      margin: 1.5rem auto 0;
+      padding: 0.8rem 2rem;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      width: fit-content;
+      transition: background-color 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+      background-color: #c82333;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .payment-container {
+        padding: 1rem;
+      }
+
+      .payment-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .payment-qr img {
+        width: 150px;
+        height: 150px;
+      }
+
+      .cancel-btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .payment-item {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <div class="payment-header">
+      <h1>Thanh toán</h1>
+      <p>Hoàn tất thanh toán để nhận khóa học ngay!</p>
+    </div>
+
+    <div class="payment-items">
+      <!-- Payment Item 1 -->
+      <div class="payment-item">
+        <span class="item-name">Quản lý tài chính cá nhân x1</span>
+        <span class="item-price">5,000 VND</span>
+      </div>
+      <!-- Payment Item 2 -->
+      <div class="payment-item">
+        <span class="item-name">Lập trình JavaScript cơ bản x1</span>
+        <span class="item-price">5,000 VND</span>
+      </div>
+      <!-- Payment Item 3 -->
+      <div class="payment-item">
+        <span class="item-name">Quản lý tài chính cá nhân (Free) x1</span>
+        <span class="item-price free">0 VND</span>
+      </div>
+    </div>
+
+    <div class="payment-total">
+      <span>Tổng cộng:</span>
+      <span>10,000 VND</span>
+    </div>
+
+    <div class="payment-qr">
+      <img src="https://via.placeholder.com/200x200?text=QR+Code" alt="QR Code">
+      <div class="bank-info">
+        <p><span class="bank-name">Ngân hàng:</span> TMC Việt Nam Thịnh Vượng - Ngân hàng số CAKE by VPBank</p>
+        <p><span class="account-name">Chủ tài khoản:</span> TRUONG MINH TIEN</p>
+        <p><span class="account-number">Số tài khoản:</span> 0382871562</p>
+        <p><span class="account-number">Nội dung chuyển khoản:</span> CSBRJ22FP67 Thanh toan 448739</p>
+      </div>
+      <p class="note">
+        • Lưu ý: Nhập chính xác số tiền <span>5,000</span>, nội dung <span>CSBRJ22FP67 Thanh toan 448739</span> khi chuyển khoản.
+      </p>
+    </div>
+
+    <a href="cart.html" class="cancel-btn">Hủy</a>
+  </div>
+</body>
+</html>

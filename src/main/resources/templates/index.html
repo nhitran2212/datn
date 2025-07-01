@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html th:replace="~{/layout::view(~{::title}, ~{::body}, ~{::style})}" xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDU102 - Nền tảng học tập tài chính & công nghệ</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        .hero {
+            background-color: #002855;
+            color: white;
+            padding: 3rem 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hero-content {
+            width: 50%;
+        }
+
+        .hero-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content p {
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .hero-buttons .btn {
+            padding: 0.7rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-right: 1rem;
+        }
+
+        .primary-btn {
+            background-color: white;
+            color: #002855;
+            border: none;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+
+        .hero-image {
+            width: 40%;
+        }
+
+        .hero-image img {
+            width: 60%;
+            border-radius: 8px;
+        }
+
+        /* Featured Courses */
+        .featured-courses {
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .section-title {
+            margin-bottom: 2rem;
+            font-size: 1.8rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            height: 3px;
+            width: 50%;
+            background-color: #002855;
+            bottom: -10px;
+            left: 25%;
+        }
+
+        .course-filters {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .filter-button {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #f0f7ff;
+            color: #333;
+            border-radius: 20px;
+            margin: 0 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-button.active {
+            background-color: #002855;
+            color: white;
+        }
+
+        .filter-button.active span {
+            color: #f0f7ff;
+        }
+
+        .filter-button i {
+            margin-right: 0.5rem;
+            color: #002855;
+        }
+
+        .filter-button.active i {
+            color: white;
+        }
+
+        .filter-button span {
+            color: #666;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .course-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 350px; /* Fixed height for all cards */
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .course-image {
+            position: relative;
+            height: 150px; /* Fixed height for all images */
+            overflow: hidden;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .course-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .wishlist-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .wishlist-btn.wishlist-active {
+            color: red;
+        }
+
+        .course-content {
+            padding: 1rem;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            flex: 1; /* Take remaining space */
+            justify-content: space-between;
+        }
+
+        .course-info-section {
+            flex: 1; /* Take available space */
+        }
+
+        .course-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            line-height: 1.3;
+            height: 2.6rem; /* Fixed height for 2 lines max */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .course-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+            height: 3.36rem; /* Fixed height for 3 lines max */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        .course-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto; /* Push to bottom */
+        }
+
+        .price {
+            font-weight: bold;
+        }
+
+        .free {
+            color: #28a745;
+        }
+
+        .buy-btn {
+            background-color: #002855;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .buy-btn:hover {
+            background-color: #001f42;
+        }
+
+        .see-more-btn {
+            display: inline-block;
+            padding: 0.7rem 1.5rem;
+            border: 1px solid #002855;
+            border-radius: 4px;
+            color: #002855;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
+        }
+
+        .see-more-btn:hover {
+            background-color: #002855;
+            color: white;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .stat-item h2 {
+            font-size: 2.5rem;
+            color: #002855;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            color: #666;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 3rem 5%;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .tech-categories {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .tech-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .tech-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #e6f0ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .tech-icon i {
+            font-size: 1.8rem;
+            color: #002855;
+        }
+
+        .tech-card h3 {
+            margin-bottom: 1rem;
+            color: #002855;
+        }
+
+        /* Why Choose Us */
+        .why-choose {
+            padding: 3rem 5%;
+            text-align: center;
+        }
+
+        .benefits {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .benefit-item {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .benefit-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .benefit-item h3 {
+            margin-bottom: 1rem;
+            color: #002855;
+        }
+
+        .benefit-item p {
+            color: #666;
+        }
+
+        /* Hidden class for filtering */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .courses-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content, .hero-image {
+                width: 50%;
+            }
+            
+            .hero-image {
+                margin-top: 2rem;
+            }
+            
+            .courses-grid, .tech-categories, .benefits {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .courses-grid, .tech-categories, .benefits {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Học tập cùng các chuyên gia hàng đầu</h1>
+            <p>EDU102 cung cấp các khóa học chất lượng với giá cả phải chăng, giúp bạn tiếp cận kiến thức thực tiễn về tài chính và công nghệ.</p>
+            <div class="hero-buttons">
+                <a th:href="@{/courses}" class="btn primary-btn">Khám phá ngay</a>
+                <a th:href="@{/courses}" class="btn secondary-btn">Xem khóa học</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img th:src="@{/upload/học.png}" alt="Học trực tuyến">
+        </div>
+    </section>
+
+    <!-- Featured Courses Section -->
+    <section class="featured-courses">
+        <h2 class="section-title">Các khóa học nổi bật</h2>
+        <div class="course-filters">
+            <a th:href="@{/index(type='all',page=0)}" th:class="${activeType == 'all' ? 'filter-button active' : 'filter-button'}">
+                <i class="fas fa-book"></i> 📚 Tất cả <span></span>
+            </a>
+            <a th:each="category, iterStat : ${categories}" 
+               th:if="${iterStat.index < 4}" 
+               th:href="@{/index(type=${category.tenDanhMuc},page=0)}" 
+               th:class="${activeType == category.tenDanhMuc ? 'filter-button active' : 'filter-button'}">
+                <i th:class="${category.tenDanhMuc == 'Tài chính' ? 'fas fa-dollar-sign' : 'fas fa-laptop'}"></i>
+                <span th:text="${category.tenDanhMuc == 'Tài chính' ? '💰' : '💻'}"></span>
+                <span th:text="${category.tenDanhMuc}"></span>
+                <span th:text="${category.tenDanhMuc == 'Tài chính' ? '' : ''}"></span>
+            </a>
+			
+        </div>
+        <div class="courses-grid" th:if="${courses.isEmpty()}">
+            <p>Không có khóa học nào trong danh mục này.</p>
+        </div>
+        <div class="courses-grid" th:unless="${courses.isEmpty()}">
+            <div th:each="course : ${courses}" class="course-card">
+                <div class="course-image">
+                    <img th:src="${course.anh_dai_dien} ? '/upload/' + ${course.anh_dai_dien} : '/upload/default.png'" alt="Course thumbnail"/>
+                    <div class="wishlist-btn">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                </div>
+                <div class="course-content">
+                    <div class="course-info-section">
+                        <h3 class="course-title" th:text="${course.ten_khoa_hoc}"></h3>
+                        <p class="course-info" th:text="${course.mo_ta}"></p>
+                    </div>
+                    <div class="course-price">
+                        <span class="price" th:classappend="${course.gia_tien == null ? 'free' : ''}" 
+                              th:text="${course.gia_tien != null ? #numbers.formatDecimal(course.gia_tien, 0, 'COMMA', 2, 'POINT') + ' VND' : 'Miễn phí'}"></span>
+							  <form th:action="@{/cart/course/buy/{id}(id=${course.ID_khoa_hoc})}" method="post">
+							  <button type="submit" class="btn btn-primary">Thêm giỏ hàng</button>
+							                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination-container" th:if="${totalPages > 1}">
+            <nav aria-label="Course pagination">
+                <ul class="pagination">
+                    <li class="page-item" th:class="${currentPage == 0 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/index(type=${activeType},page=${currentPage - 1})}" aria-label="Previous">
+                            <span aria-hidden="true">«</span>
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:class="${i == currentPage ? 'active' : ''}">
+                        <a class="page-link" th:href="@{/index(type=${activeType},page=${i})}" th:text="${i + 1}"></a>
+                    </li>
+                    <li class="page-item" th:class="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/index(type=${activeType},page=${currentPage + 1})}" aria-label="Next">
+                            <span aria-hidden="true">»</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <a th:href="@{/courses}" class="see-more-btn">Xem thêm khóa học</a>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stat-item">
+            <h2 th:text="${#numbers.formatInteger(totalStudents, 0, 'COMMA')} + '+'">1000+</h2>
+            <p>Học viên</p>
+        </div>
+        <div class="stat-item">
+            <h2 th:text="${#numbers.formatInteger(totalCourses, 0, 'COMMA')} + '+'">200+</h2>
+            <p>Khóa học</p>
+        </div>
+        <div class="stat-item">
+            <h2 th:text="${#numbers.formatInteger(totalInstructors, 0, 'COMMA')} + '+'">20+</h2>
+            <p>Chuyên gia</p>
+        </div>
+        <div class="stat-item">
+            <h2>99%</h2>
+            <p>Tỷ lệ hài lòng</p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title">Danh mục công nghệ nổi bật</h2>
+        <div class="tech-categories">
+            <div class="tech-card">
+                <div class="tech-icon">🌐</div>
+                <h3>Phát triển Web</h3>
+                <p>HTML, CSS, JavaScript, React, Node.js, và nhiều framework hiện đại khác để xây dựng trang web chuyên nghiệp.</p>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">📱</div>
+                <h3>Ứng dụng di động</h3>
+                <p>React Native, Flutter, Swift và Kotlin để phát triển ứng dụng di động đa nền tảng và native.</p>
+            </div>
+            <div class="tech-card">
+                <div class="tech-icon">🤖</div>
+                <h3>AI & Machine Learning</h3>
+                <p>Python, TensorFlow, PyTorch và các công cụ AI hiện đại để xây dựng các mô hình học máy.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="why-choose">
+        <h2 class="section-title">Vì sao bạn nên học trên EDU102</h2>
+        <div class="benefits">
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <img th:src="@{/upload/khoa-hoc-4-1.jpg}" alt="Chuyên gia">
+                </div>
+                <h3>Học cùng chuyên gia hàng đầu</h3>
+                <p>Đội ngũ giảng viên là những chuyên gia dày dặn kinh nghiệm</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <img th:src="@{upload/chi-phi-khoa-hoc-online-2.png}" alt="Chi phí hợp lý">
+                </div>
+                <h3>Chi phí hợp lý, giá trị vượt trội</h3>
+                <p>Cung cấp các khóa học chất lượng cao với mức giá phải chăng</p>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <img th:src="@{/upload/khoa-hoc-online-va-truyen-thong.2.jpg}" alt="Học linh hoạt">
+                </div>
+                <h3>Học tập linh hoạt, mọi lúc mọi nơi</h3>
+                <p>Hệ thống học trực tuyến hiện đại, cho phép bạn học mọi lúc</p>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
